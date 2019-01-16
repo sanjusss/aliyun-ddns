@@ -36,7 +36,11 @@ namespace aliyun_ddns
             /// <summary>
             /// AAAA记录，IPv6。
             /// </summary>
-            AAAA
+            AAAA,
+            /// <summary>
+            /// CNAME记录
+            /// </summary>
+            CNAME
         }
 
         /// <summary>
@@ -48,8 +52,8 @@ namespace aliyun_ddns
             while (true)
             {
                 DateTime start = DateTime.Now;
-                Process(IpType.A);
-                Process(IpType.AAAA);
+                Process(IpType.A, _op.DOMAIN);
+                Process(IpType.AAAA, _op.DOMAIN);
                 var used = DateTime.Now - start;
                 if (used < maxWait)
                 {
@@ -58,9 +62,28 @@ namespace aliyun_ddns
             }
         }
 
-        private bool Process(IpType type)
+        /// <summary>
+        /// 处理域名更新。
+        /// </summary>
+        /// <param name="type">记录类型</param>
+        /// <param name="domain">域名</param>
+        /// <returns>是否成功。</returns>
+        private bool Process(IpType type, string domain)
         {
-            var rds = GetRecords(type, _op.DOMAIN);
+            var cnames = GetRecords(IpType.CNAME.ToString(), domain);
+            if (cnames != null)
+            {
+                if (cnames.Count > 0 && DeleteRecords(cnames[0]) == false)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            var rds = GetRecords(type.ToString(), domain);
             if (rds == null)
             {
                 return false;
@@ -80,7 +103,7 @@ namespace aliyun_ddns
                     }
                 }
 
-                return AddRecord(type, _op.DOMAIN);
+                return AddRecord(type, domain);
             }
         }
 
@@ -100,7 +123,7 @@ namespace aliyun_ddns
         /// <param name="type">记录类型</param>
         /// <param name="domain">域名或子域名</param>
         /// <returns>记录的集合，获取失败时返回null。</returns>
-        private IList<Record> GetRecords(IpType type, string domain)
+        private IList<Record> GetRecords(string type, string domain)
         {
             List<Record> records = new List<Record>();
             try
@@ -114,7 +137,7 @@ namespace aliyun_ddns
                         SubDomain = domain,
                         PageSize = _pageSize,
                         PageNumber = pageNumber,
-                        Type = type.ToString()
+                        Type = type
                     };
                     var response = client.GetAcsResponse(request);
                     records.AddRange(response.DomainRecords);
