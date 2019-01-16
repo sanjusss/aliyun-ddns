@@ -11,7 +11,7 @@
 # 使用方法
 
 ```
-docker run -d --restart=always \
+docker run -d --restart=always --net=host \
     -e "AKID=[ALIYUN's AccessKey-ID]" \
     -e "AKSCT=[ALIYUN's AccessKey-Secret]" \
     -e "DOMAIN=ddns.aliyun.win" \
@@ -19,6 +19,7 @@ docker run -d --restart=always \
     -e "TTL=60" \
     sanjusss/aliyun-ddns
 ```
+如果要支持IPv6,必须使用`--net=host`模式，否则无法设置宿主机的ipv6地址到AAAA记录。
 AKID：阿里云的Access Key ID。  
 AKSCT：阿里云的Access Key Secret。  
 DOMAIN：需要更新的域名。  
