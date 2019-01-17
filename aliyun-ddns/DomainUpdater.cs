@@ -3,6 +3,8 @@ using Aliyun.Acs.Core;
 using Aliyun.Acs.Core.Profile;
 using System;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -18,7 +20,7 @@ namespace aliyun_ddns
         /// <summary>
         /// 运行配置。
         /// </summary>
-        private static readonly Options _op = Options.GetOptionsFromEnvironment();
+        private readonly Options _op;
         /// <summary>
         /// 每次请求的记录上限。
         /// </summary>
@@ -43,17 +45,35 @@ namespace aliyun_ddns
             CNAME
         }
 
+        public DomainUpdater(Options op)
+        {
+            _op = Options.GetOptionsFromEnvironment(ref op);
+        }
+
         /// <summary>
         /// 运行自动更新。
         /// </summary>
         public void Run()
         {
             TimeSpan maxWait = new TimeSpan(0, 0, _op.REDO);
+            string[] domains = _op.DOMAIN.Split(',', StringSplitOptions.RemoveEmptyEntries);
             while (true)
             {
                 DateTime start = DateTime.Now;
-                Process(IpType.A, _op.DOMAIN);
-                Process(IpType.AAAA, _op.DOMAIN);
+                var types = GetSupportIpTypes();
+                foreach (var i in domains)
+                {
+                    if (ClearCNames(i) == false)
+                    {
+                        continue;
+                    }
+
+                    foreach (var j in types)
+                    {
+                        Process(j, i);
+                    }
+                }
+
                 var used = DateTime.Now - start;
                 if (used < maxWait)
                 {
@@ -70,19 +90,6 @@ namespace aliyun_ddns
         /// <returns>是否成功。</returns>
         private bool Process(IpType type, string domain)
         {
-            var cnames = GetRecords(IpType.CNAME.ToString(), domain);
-            if (cnames != null)
-            {
-                if (cnames.Count > 0 && DeleteRecords(cnames[0]) == false)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
-
             var rds = GetRecords(type.ToString(), domain);
             if (rds == null)
             {
@@ -104,6 +111,95 @@ namespace aliyun_ddns
                 }
 
                 return AddRecord(type, domain);
+            }
+        }
+
+        /// <summary>
+        /// 清理域名对应的CName。
+        /// </summary>
+        /// <param name="domain">域名</param>
+        /// <returns>清理成功返回true，清理过程中出现异常返回false。</returns>
+        private bool ClearCNames(string domain)
+        {
+            var cnames = GetRecords(IpType.CNAME.ToString(), domain);
+            if (cnames != null)
+            {
+                if (cnames.Count > 0 && DeleteRecords(cnames[0]) == false)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 获取本机支持的记录类型。
+        /// </summary>
+        /// <returns>记录类型的集合</returns>
+        private IEnumerable<IpType> GetSupportIpTypes()
+        {
+            try
+            {
+                HashSet<IpType> res = new HashSet<IpType>();
+                //获取说有网卡信息
+                NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+                foreach (NetworkInterface adapter in nics)
+                {
+                    try
+                    {
+                        if (adapter.NetworkInterfaceType != NetworkInterfaceType.Ethernet &&
+                            adapter.NetworkInterfaceType != NetworkInterfaceType.Wireless80211 &&
+                            adapter.NetworkInterfaceType != NetworkInterfaceType.Ppp)
+                        {
+                            continue;
+                        }
+
+                        //获取网络接口信息
+                        IPInterfaceProperties properties = adapter.GetIPProperties();
+                        //获取单播地址集
+                        UnicastIPAddressInformationCollection ips = properties.UnicastAddresses;
+                        foreach (UnicastIPAddressInformation i in ips)
+                        {
+                            switch (i.Address.AddressFamily)
+                            {
+                                case AddressFamily.InterNetwork:
+                                    res.Add(IpType.A);
+                                    break;
+
+                                case AddressFamily.InterNetworkV6:
+                                    if (i.Address.IsIPv6LinkLocal == false &&
+                                        i.Address.IsIPv6Multicast == false &&
+                                        i.Address.IsIPv6SiteLocal == false)
+                                    {
+                                        res.Add(IpType.AAAA);
+                                    }
+
+                                    break;
+
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                }
+                
+                return res;
+            }
+            catch (Exception e)
+            {
+                Log.Print($"获取网卡信息时出现异常：{ e }");
+                return new IpType[] { IpType.A, IpType.AAAA };
             }
         }
 

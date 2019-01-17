@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommandLine;
+using System;
 
 namespace aliyun_ddns
 {
@@ -6,8 +7,17 @@ namespace aliyun_ddns
     {
         static void Main(string[] args)
         {
-            DomainUpdater updater = new DomainUpdater();
-            updater.Run();
+            if (Console.WindowWidth <= 10)
+            {
+                Parser.Default.Settings.MaximumDisplayWidth = 80;
+            }
+
+            Parser.Default.ParseArguments<Options>(args)
+                .WithParsed<Options>(op =>
+                {
+                    DomainUpdater updater = new DomainUpdater(op);
+                    updater.Run();
+                });
 #if DEBUG
             Console.Read();
 #endif

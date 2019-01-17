@@ -10,11 +10,13 @@
 
 # 使用方法
 
+### Docker
 ```
 docker run -d --restart=always --net=host \
     -e "AKID=[ALIYUN's AccessKey-ID]" \
     -e "AKSCT=[ALIYUN's AccessKey-Secret]" \
     -e "DOMAIN=ddns.aliyun.win" \
+    -e "ENDPOINT=cn-hangzhou" \
     -e "REDO=30" \
     -e "TTL=60" \
     sanjusss/aliyun-ddns
@@ -22,6 +24,33 @@ docker run -d --restart=always --net=host \
 如果要支持IPv6,必须使用`--net=host`模式，否则无法设置宿主机的ipv6地址到AAAA记录。
 AKID：阿里云的Access Key ID。  
 AKSCT：阿里云的Access Key Secret。  
-DOMAIN：需要更新的域名。  
+DOMAIN：需要更新的域名，多个域名需要“,”分隔。  
+ENDPOINT：默认为cn-hangzhou，[详见定义](https://help.aliyun.com/document_detail/40654.html?spm=a2c4e.11153987.0.0.6d85366aUfTWbG)。  
 REDO： 更新间隔，单位秒。建议大于等于TTL/2。  
 TTL： 服务器缓存解析记录的时长，单位秒，普通用户最小为600。  
+
+### 命令行
+##### 查看帮助信息
+```
+dotnet aliyun-ddns.dll --help
+```
+##### 查看版本信息
+```
+dotnet aliyun-ddns.dll --version
+```
+##### 运行
+```
+dotnet aliyun-ddns.dll \
+    -u "ALIYUN's AccessKey-ID" \
+    -p "ALIYUN's AccessKey-Secret" \
+    -d "ddns.aliyun.win,ddns2.aliyun2.win" \
+    -e "cn-hangzhou" \
+    -i 300 \
+    -t 600
+```
+u：阿里云的Access Key ID。  
+p：阿里云的Access Key Secret。  
+d：需要更新的域名，多个域名需要“,”分隔。
+e：默认为cn-hangzhou，[详见定义](https://help.aliyun.com/document_detail/40654.html?spm=a2c4e.11153987.0.0.6d85366aUfTWbG)。  
+i： 更新间隔，单位秒。建议大于等于TTL/2。  
+t： 服务器缓存解析记录的时长，单位秒，普通用户最小为600。  
