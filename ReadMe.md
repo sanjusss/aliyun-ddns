@@ -19,6 +19,8 @@ docker run -d --restart=always --net=host \
     -e "ENDPOINT=cn-hangzhou" \
     -e "REDO=30" \
     -e "TTL=60" \
+    -e "TIMEZONE=8.0" \
+    -e "TYPE=A,AAAA" \
     sanjusss/aliyun-ddns
 ```
 如果要支持IPv6,必须使用`--net=host`模式，否则无法设置宿主机的ipv6地址到AAAA记录。  
@@ -28,6 +30,8 @@ DOMAIN：需要更新的域名，多个域名需要“,”分隔。
 ENDPOINT：默认为cn-hangzhou，[详见定义](https://help.aliyun.com/document_detail/40654.html?spm=a2c4e.11153987.0.0.6d85366aUfTWbG)。  
 REDO： 更新间隔，单位秒。建议大于等于TTL/2。  
 TTL： 服务器缓存解析记录的时长，单位秒，普通用户最小为600。  
+TIMEZONE： 输出日志时的时区，单位小时。  
+TYPE： 需要更改的记录类型，可以用“,”隔开，只能是“A”、“AAAA”或“A,AAAA”。
 
 ### 命令行
 ##### 查看帮助信息
@@ -46,7 +50,9 @@ dotnet aliyun-ddns.dll \
     -d "ddns.aliyun.win,ddns2.aliyun2.win" \
     -e "cn-hangzhou" \
     -i 300 \
-    -t 600
+    -t 600 \
+    --timezone 8.0 \
+    --type A
 ```
 u：阿里云的Access Key ID。  
 p：阿里云的Access Key Secret。  
@@ -54,3 +60,5 @@ d：需要更新的域名，多个域名需要“,”分隔。
 e：默认为cn-hangzhou，[详见定义](https://help.aliyun.com/document_detail/40654.html?spm=a2c4e.11153987.0.0.6d85366aUfTWbG)。  
 i： 更新间隔，单位秒。建议大于等于TTL/2。  
 t： 服务器缓存解析记录的时长，单位秒，普通用户最小为600。  
+tz： 输出日志时的时区，单位小时。  
+type： 需要更改的记录类型，可以用“,”隔开，只能是“A”、“AAAA”或“A,AAAA”。  

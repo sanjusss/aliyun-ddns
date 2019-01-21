@@ -17,6 +17,10 @@ namespace aliyun_ddns
         public int REDO { get; set; } = 300;
         [Option('t', "ttl", Required = false, Default = 600, HelpText = "服务器缓存解析记录的时长，单位秒。")]
         public long TTL { get; set; } = 600;
+        [Option("timezone", Required = false, Default = 8.0, HelpText = "输出日志时的时区，单位小时。")]
+        public double TIMEZONE { get; set; } = 8;
+        [Option("type", Required = false, Default = "A,AAAA", HelpText = "需要更改的记录类型，可以用“,”隔开，只能是“A”、“AAAA”或“A,AAAA”。")]
+        public string TYPE { get; set; } = "A,AAAA";
 
         public static Options GetOptionsFromEnvironment(ref Options op)
         {
@@ -24,6 +28,7 @@ namespace aliyun_ddns
             op.AKSCT = Environment.GetEnvironmentVariable("AKSCT") ?? op.AKSCT;
             op.ENDPOINT = Environment.GetEnvironmentVariable("ENDPOINT") ?? op.ENDPOINT;
             op.DOMAIN = Environment.GetEnvironmentVariable("DOMAIN") ?? op.DOMAIN;
+            op.TYPE = Environment.GetEnvironmentVariable("TYPE") ?? op.TYPE;
 
             string redoText = Environment.GetEnvironmentVariable("REDO");
             if (int.TryParse(redoText, out int redo))
@@ -36,7 +41,13 @@ namespace aliyun_ddns
             {
                 op.TTL = ttl;
             }
-            
+
+            string tzText = Environment.GetEnvironmentVariable("TIMEZONE");
+            if (double.TryParse(tzText, out double tz))
+            {
+                op.TIMEZONE = tz;
+            }
+
             return op;
         }
     }

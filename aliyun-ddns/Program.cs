@@ -15,6 +15,8 @@ namespace aliyun_ddns
             Parser.Default.ParseArguments<Options>(args)
                 .WithParsed<Options>(op =>
                 {
+                    Options.GetOptionsFromEnvironment(ref op);
+                    Log.OP = op;
                     DomainUpdater updater = new DomainUpdater(op);
                     updater.Run();
                 });

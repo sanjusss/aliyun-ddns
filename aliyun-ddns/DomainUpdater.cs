@@ -3,6 +3,7 @@ using Aliyun.Acs.Core;
 using Aliyun.Acs.Core.Profile;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
@@ -40,14 +41,14 @@ namespace aliyun_ddns
             /// </summary>
             AAAA,
             /// <summary>
-            /// CNAME记录
+            /// 任意记录类型。
             /// </summary>
-            CNAME
+            ANY
         }
 
         public DomainUpdater(Options op)
         {
-            _op = Options.GetOptionsFromEnvironment(ref op);
+            _op = op;
         }
 
         /// <summary>
@@ -57,20 +58,65 @@ namespace aliyun_ddns
         {
             TimeSpan maxWait = new TimeSpan(0, 0, _op.REDO);
             string[] domains = _op.DOMAIN.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            HashSet<IpType> targetTypes = GetTargetTypes();
+            if (targetTypes.Count == 0)
+            {
+                Log.Print("没有设置需要修改的记录类型。");
+                return;
+            }
+
             while (true)
             {
                 DateTime start = DateTime.Now;
-                var types = GetSupportIpTypes();
+                HashSet<IpType> types = new HashSet<IpType>(GetSupportIpTypes());
+                types.IntersectWith(targetTypes);
+                Dictionary<IpType, string> ips = new Dictionary<IpType, string>();
+                foreach (var i in types)
+                {
+                    string ip = GetIp(i);
+                    if (string.IsNullOrWhiteSpace(ip) == false)
+                    {
+                        ips[i] = ip;
+                    }
+                }
+
                 foreach (var i in domains)
                 {
-                    if (ClearCNames(i) == false)
+                    var rds = GetRecords(i);//获取域名的所有记录
+                    Dictionary<IpType, Record> oldRds = null;
+                    if (types.Count == rds.Count)
                     {
-                        continue;
+                        oldRds = new Dictionary<IpType, Record>();
+                        foreach (var j in ips)
+                        {
+                            var oldRd = GetOldRecord(j.Key, rds);
+                            if (oldRd == null)
+                            {
+                                oldRds = null;
+                                break;
+                            }
+                            else
+                            {
+                                oldRds[j.Key] = oldRd;
+                            }
+                        }
                     }
 
-                    foreach (var j in types)
+                    if (rds.Count > 0 && oldRds == null)
                     {
-                        Process(j, i);
+                        DeleteRecords(rds[0]);
+                    }
+
+                    foreach (var j in ips)
+                    {
+                        if (oldRds != null && oldRds.ContainsKey(j.Key))
+                        {
+                            UpdateRecord(oldRds[j.Key], j.Value);
+                        }
+                        else
+                        {
+                            AddRecord(j.Key, i, j.Value);
+                        }
                     }
                 }
 
@@ -83,60 +129,52 @@ namespace aliyun_ddns
         }
 
         /// <summary>
-        /// 处理域名更新。
+        /// 获取目标记录类型。
         /// </summary>
-        /// <param name="type">记录类型</param>
-        /// <param name="domain">域名</param>
-        /// <returns>是否成功。</returns>
-        private bool Process(IpType type, string domain)
+        /// <returns>目标记录类型的集合</returns>
+        private HashSet<IpType> GetTargetTypes()
         {
-            var rds = GetRecords(type.ToString(), domain);
-            if (rds == null)
+            HashSet<string> inputTypes = new HashSet<string>(_op.TYPE.Split(',', StringSplitOptions.RemoveEmptyEntries));
+            HashSet<IpType> targetTypes = new HashSet<IpType>();
+            if (inputTypes.Contains("A"))
             {
-                return false;
+                targetTypes.Add(IpType.A);
             }
 
-            if (rds.Count == 1)
+            if (inputTypes.Contains("AAAA"))
             {
-                return UpdateRecord(rds[0]);
+                targetTypes.Add(IpType.AAAA);
             }
-            else
-            {
-                if (rds.Count > 1)
-                {
-                    if (DeleteRecords(rds[0]) == false)
-                    {
-                        return false;
-                    }
-                }
 
-                return AddRecord(type, domain);
-            }
+            return targetTypes;
         }
 
         /// <summary>
-        /// 清理域名对应的CName。
+        /// 获取当前记录。
         /// </summary>
-        /// <param name="domain">域名</param>
-        /// <returns>清理成功返回true，清理过程中出现异常返回false。</returns>
-        private bool ClearCNames(string domain)
+        /// <param name="type">记录类型</param>
+        /// <param name="rds">记录合集</param>
+        /// <returns>有且仅有一条同类型记录时，返回该记录，否则返回null。</returns>
+        private Record GetOldRecord(IpType type, IEnumerable<Record> rds)
         {
-            var cnames = GetRecords(IpType.CNAME.ToString(), domain);
-            if (cnames != null)
+            Record res = null;
+            string t = type.ToString();
+            foreach (var i in rds)
             {
-                if (cnames.Count > 0 && DeleteRecords(cnames[0]) == false)
+                if (i.Type == t)
                 {
-                    return false;
-                }
-                else
-                {
-                    return true;
+                    if (res != null)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        res = i;
+                    }
                 }
             }
-            else
-            {
-                return false;
-            }
+
+            return res;
         }
 
         /// <summary>
@@ -216,10 +254,9 @@ namespace aliyun_ddns
         /// <summary>
         /// 获取已经存在的记录。
         /// </summary>
-        /// <param name="type">记录类型</param>
         /// <param name="domain">域名或子域名</param>
         /// <returns>记录的集合，获取失败时返回null。</returns>
-        private IList<Record> GetRecords(string type, string domain)
+        private IList<Record> GetRecords(string domain)
         {
             List<Record> records = new List<Record>();
             try
@@ -232,9 +269,9 @@ namespace aliyun_ddns
                     {
                         SubDomain = domain,
                         PageSize = _pageSize,
-                        PageNumber = pageNumber,
-                        Type = type
+                        PageNumber = pageNumber
                     };
+
                     var response = client.GetAcsResponse(request);
                     records.AddRange(response.DomainRecords);
                     if (response.TotalCount <= records.Count)
@@ -246,11 +283,11 @@ namespace aliyun_ddns
                         ++pageNumber;
                     }
                 } while (true);
-                Log.Print($"成功获取{ domain }的{ type }记录，共{ records.Count }条。");
+                Log.Print($"成功获取{ domain }的所有记录，共{ records.Count }条。");
             }
             catch (Exception e)
             {
-                Log.Print($"获取{ domain }的{ type }记录时出现异常：{ e }");
+                Log.Print($"获取{ domain }的所有记录时出现异常：{ e }");
                 return null;
             }
 
@@ -258,7 +295,7 @@ namespace aliyun_ddns
         }
 
         /// <summary>
-        /// 删除所有同类记录。
+        /// 删除所有记录。
         /// </summary>
         /// <param name="rd">待删除的记录。</param>
         /// <returns>删除成功返回true，否则返回false。</returns>
@@ -270,24 +307,23 @@ namespace aliyun_ddns
                 DeleteSubDomainRecordsRequest request = new DeleteSubDomainRecordsRequest
                 {
                     DomainName = rd.DomainName,
-                    RR = rd.RR,
-                    Type = rd.Type
+                    RR = rd.RR
                 };
                 var response = client.GetAcsResponse(request);
                 if (response.HttpResponse.isSuccess())
                 {
-                    Log.Print($"成功清理{ rd.Type }记录{ rd.RR }.{ rd.DomainName }。");
+                    Log.Print($"成功清理记录{ rd.RR }.{ rd.DomainName }。");
                     return true;
                 }
                 else
                 {
-                    Log.Print($"清理{ rd.Type }记录{ rd.RR }.{ rd.DomainName }失败。");
+                    Log.Print($"清理记录{ rd.RR }.{ rd.DomainName }失败。");
                     return false;
                 }
             }
             catch (Exception e)
             {
-                Log.Print($"删除{ rd.RR }.{ rd.DomainName }的{ rd.Type }记录时出现异常：{ e }");
+                Log.Print($"删除{ rd.RR }.{ rd.DomainName }记录时出现异常：{ e }");
                 return false;
             }
         }
@@ -297,15 +333,10 @@ namespace aliyun_ddns
         /// </summary>
         /// <param name="type">记录类型</param>
         /// <param name="domain">域名或子域名</param>
+        /// <param name="ip">公网ip</param>
         /// <returns>添加成功返回true，否则返回false。</returns>
-        private bool AddRecord(IpType type, string domain)
+        private bool AddRecord(IpType type, string domain, string ip)
         {
-            string ip = type == IpType.A ? PublicIpGetter.GetIpv4() : PublicIpGetter.GetIpv6();
-            if (string.IsNullOrEmpty(ip))
-            {
-                return false;
-            }
-
             try
             {
                 string pattern = @"^(\S*)\.(\S+)\.(\S+)$";
@@ -356,10 +387,10 @@ namespace aliyun_ddns
         /// 更新解析记录。
         /// </summary>
         /// <param name="rd">原记录。</param>
+        /// <param name="ip">公网IP。</param>
         /// <returns>更新成功返回true，否则返回false。</returns>
-        private bool UpdateRecord(Record rd)
+        private bool UpdateRecord(Record rd, string ip)
         {
-            string ip = rd.Type == IpType.A.ToString() ? PublicIpGetter.GetIpv4() : PublicIpGetter.GetIpv6();
             if (string.IsNullOrEmpty(ip))
             {
                 return false;
@@ -398,6 +429,16 @@ namespace aliyun_ddns
                 Log.Print($"更新{ rd.Type }记录{ rd.RR }.{ rd.DomainName }时出现异常：{ e }。");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// 获取公网IP。
+        /// </summary>
+        /// <param name="type">IP类型</param>
+        /// <returns>IP字符串</returns>
+        private string GetIp(IpType type)
+        {
+            return type == IpType.A ? PublicIpGetter.GetIpv4() : PublicIpGetter.GetIpv6();
         }
     }
 }
