@@ -68,62 +68,81 @@ namespace aliyun_ddns
             while (true)
             {
                 DateTime start = DateTime.Now;
-                HashSet<IpType> types = new HashSet<IpType>(GetSupportIpTypes());
-                types.IntersectWith(targetTypes);
-                Dictionary<IpType, string> ips = new Dictionary<IpType, string>();
-                foreach (var i in types)
+
+                try
                 {
-                    string ip = GetIp(i);
-                    if (string.IsNullOrWhiteSpace(ip) == false)
-                    {
-                        ips[i] = ip;
-                    }
+                    Update(domains, targetTypes);
                 }
-
-                foreach (var i in domains)
+                catch (Exception e)
                 {
-                    var rds = GetRecords(i);//获取域名的所有记录
-                    Dictionary<IpType, Record> oldRds = null;
-                    if (types.Count == rds.Count)
-                    {
-                        oldRds = new Dictionary<IpType, Record>();
-                        foreach (var j in ips)
-                        {
-                            var oldRd = GetOldRecord(j.Key, rds);
-                            if (oldRd == null)
-                            {
-                                oldRds = null;
-                                break;
-                            }
-                            else
-                            {
-                                oldRds[j.Key] = oldRd;
-                            }
-                        }
-                    }
-
-                    if (rds.Count > 0 && oldRds == null)
-                    {
-                        DeleteRecords(rds[0]);
-                    }
-
-                    foreach (var j in ips)
-                    {
-                        if (oldRds != null && oldRds.ContainsKey(j.Key))
-                        {
-                            UpdateRecord(oldRds[j.Key], j.Value);
-                        }
-                        else
-                        {
-                            AddRecord(j.Key, i, j.Value);
-                        }
-                    }
+                    Log.Print($"更新时出现未预料的异常：{ e }");
                 }
 
                 var used = DateTime.Now - start;
                 if (used < maxWait)
                 {
                     Thread.Sleep(maxWait - used);
+                }
+            }
+        }
+
+        private void Update(string[] domains, HashSet<IpType> targetTypes)
+        {
+            HashSet<IpType> types = new HashSet<IpType>(GetSupportIpTypes());
+            types.IntersectWith(targetTypes);
+            Dictionary<IpType, string> ips = new Dictionary<IpType, string>();
+            foreach (var i in types)
+            {
+                string ip = GetIp(i);
+                if (string.IsNullOrWhiteSpace(ip) == false)
+                {
+                    ips[i] = ip;
+                }
+            }
+
+            foreach (var i in domains)
+            {
+                var rds = GetRecords(i);//获取域名的所有记录
+                if (rds == null)
+                {
+                    Log.Print($"跳过设置域名 { i }");
+                    continue;
+                }
+
+                Dictionary<IpType, Record> oldRds = null;
+                if (types.Count == rds.Count)
+                {
+                    oldRds = new Dictionary<IpType, Record>();
+                    foreach (var j in ips)
+                    {
+                        var oldRd = GetOldRecord(j.Key, rds);
+                        if (oldRd == null)
+                        {
+                            oldRds = null;
+                            break;
+                        }
+                        else
+                        {
+                            oldRds[j.Key] = oldRd;
+                        }
+                    }
+                }
+
+                if (rds.Count > 0 && oldRds == null)
+                {
+                    DeleteRecords(rds[0]);
+                }
+
+                foreach (var j in ips)
+                {
+                    if (oldRds != null && oldRds.ContainsKey(j.Key))
+                    {
+                        UpdateRecord(oldRds[j.Key], j.Value);
+                    }
+                    else
+                    {
+                        AddRecord(j.Key, i, j.Value);
+                    }
                 }
             }
         }
