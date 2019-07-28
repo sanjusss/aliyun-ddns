@@ -1,14 +1,14 @@
 ﻿
-ARG runtime=microsoft/dotnet:3.0-runtime
+ARG runtime=3.0-runtime
 ARG version=0
 
-FROM microsoft/dotnet:3.0-sdk AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.0 AS build
 MAINTAINER sanjusss <sanjusss@qq.com>
 WORKDIR /src
 COPY . /src
 RUN dotnet publish -c Release -o /app --version-suffix=$version ./aliyun-ddns/aliyun-ddns.csproj
 
-FROM microsoft/dotnet:$runtime AS final
+FROM mcr.microsoft.com/dotnet/core/runtime:$runtime AS final
 MAINTAINER sanjusss <sanjusss@qq.com>
 WORKDIR /app
 COPY --from=build /app .

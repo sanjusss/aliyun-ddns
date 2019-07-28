@@ -30,16 +30,14 @@ if (($env:ARCH -eq "amd64") -and (-not $isWindows)) {
     docker -D manifest create "$($env:REMOTE_IMAGE):latest" `
         "$($env:REMOTE_IMAGE):linux-arm32v7" `
         "$($env:REMOTE_IMAGE):linux-arm64v8" `
-        "$($env:REMOTE_IMAGE):linux-amd64" `
-        "$($env:REMOTE_IMAGE):windows-amd64"
+        "$($env:REMOTE_IMAGE):linux-amd64"
     docker manifest push "$($env:REMOTE_IMAGE):latest"
 
     IF (${env:APPVEYOR_REPO_TAG} -eq "true") {
         docker -D manifest create "$($env:REMOTE_IMAGE):$($env:APPVEYOR_REPO_TAG_NAME)" `
             "$($env:REMOTE_IMAGE):$($env:APPVEYOR_REPO_TAG_NAME)-linux-arm32v7" `
             "$($env:REMOTE_IMAGE):$($env:APPVEYOR_REPO_TAG_NAME)-linux-arm64v8" `
-            "$($env:REMOTE_IMAGE):$($env:APPVEYOR_REPO_TAG_NAME)-linux-amd64" `
-            "$($env:REMOTE_IMAGE):$($env:APPVEYOR_REPO_TAG_NAME)-windows-amd64"
+            "$($env:REMOTE_IMAGE):$($env:APPVEYOR_REPO_TAG_NAME)-linux-amd64"
         docker manifest push "$($env:REMOTE_IMAGE):$($env:APPVEYOR_REPO_TAG_NAME)"
     }
 }
