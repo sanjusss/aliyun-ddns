@@ -24,6 +24,7 @@ docker run -d --restart=always --net=host \
     sanjusss/aliyun-ddns
 ```
 如果要支持IPv6,必须使用`--net=host`模式，否则无法设置宿主机的ipv6地址到AAAA记录。  
+[获取阿里云AccessToken](https://usercenter.console.aliyun.com/)
 AKID：阿里云的Access Key ID。  
 AKSCT：阿里云的Access Key Secret。  
 DOMAIN：需要更新的域名，多个域名需要“,”分隔。  
