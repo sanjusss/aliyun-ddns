@@ -4,19 +4,20 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <RootNamespace>aliyun_ddns</RootNamespace>
-    <Version>0.1.4</Version>
+    <Version>0.1.5</Version>
     <Authors>sanjusss</Authors>
     <PackageProjectUrl>https://github.com/sanjusss/aliyun-ddns</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/sanjusss/aliyun-ddns/LICENSE</PackageLicenseUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
     <RepositoryUrl>https://github.com/sanjusss/aliyun-ddns</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>BSD</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="aliyun-net-sdk-alidns" Version="1.0.6" />
-    <PackageReference Include="CommandLineParser" Version="2.4.3" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="aliyun-net-sdk-alidns" Version="2.0.10" />
+    <PackageReference Include="CommandLineParser" Version="2.6.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>
 
 </Project>

@@ -13,6 +13,7 @@ using static Aliyun.Acs.Alidns.Model.V20150109.DescribeSubDomainRecordsResponse;
 
 namespace aliyun_ddns
 {
+    using Record=DescribeSubDomainRecords_Record;
     /// <summary>
     /// 域名更新类。
     /// </summary>
@@ -380,7 +381,7 @@ namespace aliyun_ddns
                     DomainName = domainName,
                     RR = rr,
                     Type = type.ToString(),
-                    Value = ip,
+                    _Value = ip,
                     TTL = _op.TTL
                 };
                 var response = client.GetAcsResponse(request);
@@ -414,7 +415,7 @@ namespace aliyun_ddns
             {
                 return false;
             }
-            else if (ip == rd.Value)
+            else if (ip == rd._Value)
             {
                 Log.Print($"{ rd.Type }记录{ rd.RR }.{ rd.DomainName }不需要更新。");
                 return true;
@@ -428,7 +429,7 @@ namespace aliyun_ddns
                     RecordId = rd.RecordId,
                     RR = rd.RR,
                     Type = rd.Type,
-                    Value = ip,
+                    _Value = ip,
                     TTL = _op.TTL
                 };
                 var response = client.GetAcsResponse(request);
