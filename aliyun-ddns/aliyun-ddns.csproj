@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <RootNamespace>aliyun_ddns</RootNamespace>
-    <Version>0.1.5</Version>
+    <Version>0.1.6</Version>
     <Authors>sanjusss</Authors>
     <PackageProjectUrl>https://github.com/sanjusss/aliyun-ddns</PackageProjectUrl>
     <PackageLicenseUrl></PackageLicenseUrl>
