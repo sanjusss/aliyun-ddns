@@ -103,45 +103,41 @@ namespace aliyun_ddns
 
             foreach (var i in domains)
             {
-                var rds = GetRecords(i);//获取域名的所有记录
-                if (rds == null)
+                var oldRecords = GetRecords(i);//获取域名的所有记录
+                if (oldRecords == null)
                 {
                     Log.Print($"跳过设置域名 { i }");
                     continue;
                 }
 
-                Dictionary<IpType, Record> oldRds = null;
-                if (types.Count == rds.Count)
-                {
-                    oldRds = new Dictionary<IpType, Record>();
-                    foreach (var j in ips)
-                    {
-                        var oldRd = GetOldRecord(j.Key, rds);
-                        if (oldRd == null)
-                        {
-                            oldRds = null;
-                            break;
-                        }
-                        else
-                        {
-                            oldRds[j.Key] = oldRd;
-                        }
-                    }
-                }
-
-                if (rds.Count > 0 && oldRds == null)
-                {
-                    DeleteRecords(rds[0]);
-                }
+                ClearCName(ref oldRecords);//清理必然重复的CNAME记录。
 
                 foreach (var j in ips)
                 {
-                    if (oldRds != null && oldRds.ContainsKey(j.Key))
+                    string type = j.Key.ToString();
+                    //获取当前类型的所有记录。
+                    List<Record> typedRecords = new List<Record>();
+                    for (int k = oldRecords.Count - 1; k >= 0; --k)
                     {
-                        UpdateRecord(oldRds[j.Key], j.Value);
+                        if (oldRecords[k].Type == type)
+                        {
+                            typedRecords.Add(oldRecords[k]);
+                            oldRecords.RemoveAt(k);
+                        }
+                    }
+
+                    //根据已有记录数量决定操作。
+                    if (typedRecords.Count == 1)
+                    {
+                        UpdateRecord(typedRecords[0], j.Value);
                     }
                     else
                     {
+                        if (typedRecords.Count > 1)
+                        {
+                            DeleteRecords(typedRecords[0].DomainName, typedRecords[0].RR, type);
+                        }
+
                         AddRecord(j.Key, i, j.Value);
                     }
                 }
@@ -167,34 +163,6 @@ namespace aliyun_ddns
             }
 
             return targetTypes;
-        }
-
-        /// <summary>
-        /// 获取当前记录。
-        /// </summary>
-        /// <param name="type">记录类型</param>
-        /// <param name="rds">记录合集</param>
-        /// <returns>有且仅有一条同类型记录时，返回该记录，否则返回null。</returns>
-        private Record GetOldRecord(IpType type, IEnumerable<Record> rds)
-        {
-            Record res = null;
-            string t = type.ToString();
-            foreach (var i in rds)
-            {
-                if (i.Type == t)
-                {
-                    if (res != null)
-                    {
-                        return null;
-                    }
-                    else
-                    {
-                        res = i;
-                    }
-                }
-            }
-
-            return res;
         }
 
         /// <summary>
@@ -315,37 +283,68 @@ namespace aliyun_ddns
         }
 
         /// <summary>
-        /// 删除所有记录。
+        /// 删除所有指定类型的记录。
         /// </summary>
-        /// <param name="rd">待删除的记录。</param>
-        /// <returns>删除成功返回true，否则返回false。</returns>
-        private bool DeleteRecords(Record rd)
+        /// <param name="domain">域名</param>
+        /// <param name="rr">主机记录</param>
+        /// <param name="type">解析记录类型</param>
+        /// <returns>是否删除成功。</returns>
+        private bool DeleteRecords(string domain, string rr, string type)
         {
             try
             {
                 var client = GetNewClient();
                 DeleteSubDomainRecordsRequest request = new DeleteSubDomainRecordsRequest
                 {
-                    DomainName = rd.DomainName,
-                    RR = rd.RR
+                    DomainName = domain,
+                    RR = rr,
+                    Type = type
                 };
                 var response = client.GetAcsResponse(request);
                 if (response.HttpResponse.isSuccess())
                 {
-                    Log.Print($"成功清理记录{ rd.RR }.{ rd.DomainName }。");
+                    Log.Print($"成功清理{ type }记录{ rr }.{ domain }。");
                     return true;
                 }
                 else
                 {
-                    Log.Print($"清理记录{ rd.RR }.{ rd.DomainName }失败。");
+                    Log.Print($"清理{ type }记录{ rr }.{ domain }失败。");
                     return false;
                 }
             }
             catch (Exception e)
             {
-                Log.Print($"删除{ rd.RR }.{ rd.DomainName }记录时出现异常：{ e }");
+                Log.Print($"删除{ type }记录{ rr }.{ domain }记录时出现异常：{ e }");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// 删除多余的CNAME记录。
+        /// </summary>
+        /// <param name="rds">记录集合</param>
+        /// <returns>是否完全删除成功。</returns>
+        private bool ClearCName(ref IList<Record> rds)
+        {
+            bool found = false;
+            string domain = null;
+            string rr = null;
+            for (int i = rds.Count - 1; i >= 0; --i)
+            {
+                if (rds[i].Type == "CNAME")
+                {
+                    if (found == false)
+                    {
+                        found = true;
+                        domain = rds[i].DomainName;
+                        rr = rds[i].RR;
+                    }
+
+                    rds.RemoveAt(i);
+                }
+            }
+
+            return found == false || DeleteRecords(domain, rr, "CNAME");
         }
 
         /// <summary>
