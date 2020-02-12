@@ -24,6 +24,12 @@ namespace aliyun_ddns
                 return res;
             }
 
+            res = GetIpv4FromIpApi();
+            if (string.IsNullOrEmpty(res) == false)
+            {
+                return res;
+            }
+
             try
             {
                 var request = WebRequest.Create("https://ipv4.lookup.test-ipv6.com/ip/");
@@ -36,7 +42,7 @@ namespace aliyun_ddns
                     if (string.IsNullOrWhiteSpace(ip) == false)
                     {
                         Log.Print($"当前公网IPv4为{ ip }（test-ipv6接口）。");
-                        return result.ip;
+                        return ip;
                     }
                     else
                     {
@@ -66,7 +72,7 @@ namespace aliyun_ddns
                     if (string.IsNullOrWhiteSpace(ip) == false)
                     {
                         Log.Print($"当前公网IPv4为{ ip }（淘宝接口）。");
-                        return result.ip;
+                        return ip;
                     }
                     else
                     {
@@ -79,7 +85,35 @@ namespace aliyun_ddns
                 return null;
             }
         }
-        
+
+        private static string GetIpv4FromIpApi()
+        {
+            try
+            {
+                var request = WebRequest.Create("http://ip-api.com/json/?fields=query");
+                var response = request.GetResponse();
+                using (StreamReader stream = new StreamReader(response.GetResponseStream()))
+                {
+                    string json = stream.ReadToEnd();
+                    dynamic result = JsonConvert.DeserializeObject(json);
+                    string ip = result.query;
+                    if (string.IsNullOrWhiteSpace(ip) == false)
+                    {
+                        Log.Print($"当前公网IPv4为{ ip }（ip-api）。");
+                        return ip;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         /// <summary>
         /// 获取公网IPv6。
         /// </summary>
