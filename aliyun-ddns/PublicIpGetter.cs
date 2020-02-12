@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace aliyun_ddns
 {
@@ -18,7 +19,13 @@ namespace aliyun_ddns
         /// <returns>返回公网IPv4，如果获取失败，返回null。</returns>
         public static string GetIpv4()
         {
-            string res = GetIpv4FromTaoBao();
+            string res = GetIpv4FromIpIp();
+            if (string.IsNullOrEmpty(res) == false)
+            {
+                return res;
+            }
+
+            res = GetIpv4FromTaoBao();
             if (string.IsNullOrEmpty(res) == false)
             {
                 return res;
@@ -100,6 +107,34 @@ namespace aliyun_ddns
                     if (string.IsNullOrWhiteSpace(ip) == false)
                     {
                         Log.Print($"当前公网IPv4为{ ip }（ip-api）。");
+                        return ip;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static string GetIpv4FromIpIp()
+        {
+            try
+            {
+                var request = WebRequest.Create("http://myip.ipip.net/");
+                var response = request.GetResponse();
+                using (StreamReader stream = new StreamReader(response.GetResponseStream()))
+                {
+                    string content = stream.ReadToEnd();
+                    var match = Regex.Match(content, @"(25[0-5]|2[0-4]\d|[0-1]\d{2}|[1-9]?\d)\.(25[0-5]|2[0-4]\d|[0-1]\d{2}|[1-9]?\d)\.(25[0-5]|2[0-4]\d|[0-1]\d{2}|[1-9]?\d)\.(25[0-5]|2[0-4]\d|[0-1]\d{2}|[1-9]?\d)");
+                    if (match.Success)
+                    {
+                        string ip = match.Value;
+                        Log.Print($"当前公网IPv4为{ ip }（ipip.net接口）。");
                         return ip;
                     }
                     else
