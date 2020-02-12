@@ -18,6 +18,12 @@ namespace aliyun_ddns
         /// <returns>返回公网IPv4，如果获取失败，返回null。</returns>
         public static string GetIpv4()
         {
+            string res = GetIpv4FromTaoBao();
+            if (string.IsNullOrEmpty(res) == false)
+            {
+                return res;
+            }
+
             try
             {
                 var request = WebRequest.Create("https://ipv4.lookup.test-ipv6.com/ip/");
@@ -29,7 +35,7 @@ namespace aliyun_ddns
                     string ip = result.ip;
                     if (string.IsNullOrWhiteSpace(ip) == false)
                     {
-                        Log.Print($"当前公网IPv4为{ ip }。");
+                        Log.Print($"当前公网IPv4为{ ip }（test-ipv6接口）。");
                         return result.ip;
                     }
                     else
@@ -42,6 +48,34 @@ namespace aliyun_ddns
             catch (Exception e)
             {
                 Log.Print($"检测公网IPv4时发生异常：{ e.Message }");
+                return null;
+            }
+        }
+
+        private static string GetIpv4FromTaoBao()
+        {
+            try
+            {
+                var request = WebRequest.Create("http://ip.taobao.com/service/getIpInfo.php?ip=myip");
+                var response = request.GetResponse();
+                using (StreamReader stream = new StreamReader(response.GetResponseStream()))
+                {
+                    string json = stream.ReadToEnd();
+                    dynamic result = JsonConvert.DeserializeObject(json);
+                    string ip = result.data.ip;
+                    if (string.IsNullOrWhiteSpace(ip) == false)
+                    {
+                        Log.Print($"当前公网IPv4为{ ip }（淘宝接口）。");
+                        return result.ip;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            catch
+            {
                 return null;
             }
         }
@@ -63,7 +97,7 @@ namespace aliyun_ddns
                     string ip = result.ip;
                     if (string.IsNullOrWhiteSpace(ip) == false)
                     {
-                        Log.Print($"当前公网IPv6为{ ip }。");
+                        Log.Print($"当前公网IPv6为{ ip }（test-ipv6接口）。");
                         return result.ip;
                     }
                     else
