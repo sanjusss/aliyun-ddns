@@ -1,6 +1,7 @@
 ﻿using Aliyun.Acs.Alidns.Model.V20150109;
 using Aliyun.Acs.Core;
 using Aliyun.Acs.Core.Profile;
+using aliyun_ddns.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using static Aliyun.Acs.Alidns.Model.V20150109.DescribeSubDomainRecordsResponse;
 
 namespace aliyun_ddns
@@ -91,15 +93,9 @@ namespace aliyun_ddns
         {
             HashSet<IpType> types = new HashSet<IpType>(GetSupportIpTypes());
             types.IntersectWith(targetTypes);
-            Dictionary<IpType, string> ips = new Dictionary<IpType, string>();
-            foreach (var i in types)
-            {
-                string ip = GetIp(i);
-                if (string.IsNullOrWhiteSpace(ip) == false)
-                {
-                    ips[i] = ip;
-                }
-            }
+            var tasks = types.ToDictionary(t => t, t => t == IpType.A ? PublicIPGetter.GetIpv4() : PublicIPGetter.GetIpv6());
+            Task.WaitAll(tasks.Values.ToArray());
+            var ips = tasks.ToDictionary(p => p.Key, p => p.Value.Result);
 
             foreach (var i in domains)
             {
@@ -448,16 +444,6 @@ namespace aliyun_ddns
                 Log.Print($"更新{ rd.Type }记录{ rd.RR }.{ rd.DomainName }时出现异常：{ e }。");
                 return false;
             }
-        }
-
-        /// <summary>
-        /// 获取公网IP。
-        /// </summary>
-        /// <param name="type">IP类型</param>
-        /// <returns>IP字符串</returns>
-        private string GetIp(IpType type)
-        {
-            return type == IpType.A ? PublicIpGetter.GetIpv4() : PublicIpGetter.GetIpv6();
         }
     }
 }

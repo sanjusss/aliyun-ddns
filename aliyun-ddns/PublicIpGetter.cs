@@ -1,62 +1,48 @@
-﻿using Newtonsoft.Json;
+﻿using aliyun_ddns.Common;
+using aliyun_ddns.IPGetter.IPv4Getter;
+using aliyun_ddns.IPGetter.IPv6Getter;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Text;
-using System.Text.RegularExpressions;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace aliyun_ddns
 {
     /// <summary>
     /// 公网IP获取类。
     /// </summary>
-    public static class PublicIpGetter
+    public static class PublicIPGetter
     {
         /// <summary>
         /// 获取公网IPv4。
         /// </summary>
         /// <returns>返回公网IPv4，如果获取失败，返回null。</returns>
-        public static string GetIpv4()
+        public static async Task<string> GetIpv4()
         {
-            string res = GetIpv4FromIpIp();
-            if (string.IsNullOrEmpty(res) == false)
-            {
-                return res;
-            }
-
-            res = GetIpv4FromTaoBao();
-            if (string.IsNullOrEmpty(res) == false)
-            {
-                return res;
-            }
-
-            res = GetIpv4FromIpApi();
-            if (string.IsNullOrEmpty(res) == false)
-            {
-                return res;
-            }
-
             try
             {
-                var request = WebRequest.Create("https://ipv4.lookup.test-ipv6.com/ip/");
-                var response = request.GetResponse();
-                using (StreamReader stream = new StreamReader(response.GetResponseStream()))
+                var dics = IPv4GetterCreator.Create().ToDictionary(g => g.GetIP(), g => g.Description);
+                string result = await dics.Keys.WhenAny(task =>
                 {
-                    string json = stream.ReadToEnd();
-                    dynamic result = JsonConvert.DeserializeObject(json);
-                    string ip = result.ip;
-                    if (string.IsNullOrWhiteSpace(ip) == false)
+                    string ip = task.Result;
+                    if (ip == null)
                     {
-                        Log.Print($"当前公网IPv4为{ ip }（test-ipv6接口）。");
-                        return ip;
+                        Log.Print($"从 { dics[task] } 获取公网IPv4失败。");
                     }
                     else
                     {
-                        Log.Print("没有检测到公网IPv4。");
-                        return null;
+                        Log.Print($"当前公网IPv4为 { ip }（{ dics[task] }）。");
                     }
+
+                    return ip != null;
+                },
+                TimeSpan.FromSeconds(30));
+
+                if (result == null)
+                {
+                    Log.Print($"获取公网IPv4失败，所有API接口均无法返回IPv4地址。");
                 }
+
+                return result;
             }
             catch (Exception e)
             {
@@ -65,116 +51,37 @@ namespace aliyun_ddns
             }
         }
 
-        private static string GetIpv4FromTaoBao()
-        {
-            try
-            {
-                var request = WebRequest.Create("http://ip.taobao.com/service/getIpInfo.php?ip=myip");
-                var response = request.GetResponse();
-                using (StreamReader stream = new StreamReader(response.GetResponseStream()))
-                {
-                    string json = stream.ReadToEnd();
-                    dynamic result = JsonConvert.DeserializeObject(json);
-                    string ip = result.data.ip;
-                    if (string.IsNullOrWhiteSpace(ip) == false)
-                    {
-                        Log.Print($"当前公网IPv4为{ ip }（淘宝接口）。");
-                        return ip;
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private static string GetIpv4FromIpApi()
-        {
-            try
-            {
-                var request = WebRequest.Create("http://ip-api.com/json/?fields=query");
-                var response = request.GetResponse();
-                using (StreamReader stream = new StreamReader(response.GetResponseStream()))
-                {
-                    string json = stream.ReadToEnd();
-                    dynamic result = JsonConvert.DeserializeObject(json);
-                    string ip = result.query;
-                    if (string.IsNullOrWhiteSpace(ip) == false)
-                    {
-                        Log.Print($"当前公网IPv4为{ ip }（ip-api）。");
-                        return ip;
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private static string GetIpv4FromIpIp()
-        {
-            try
-            {
-                var request = WebRequest.Create("http://myip.ipip.net/");
-                var response = request.GetResponse();
-                using (StreamReader stream = new StreamReader(response.GetResponseStream()))
-                {
-                    string content = stream.ReadToEnd();
-                    var match = Regex.Match(content, @"(25[0-5]|2[0-4]\d|[0-1]\d{2}|[1-9]?\d)\.(25[0-5]|2[0-4]\d|[0-1]\d{2}|[1-9]?\d)\.(25[0-5]|2[0-4]\d|[0-1]\d{2}|[1-9]?\d)\.(25[0-5]|2[0-4]\d|[0-1]\d{2}|[1-9]?\d)");
-                    if (match.Success)
-                    {
-                        string ip = match.Value;
-                        Log.Print($"当前公网IPv4为{ ip }（ipip.net接口）。");
-                        return ip;
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         /// <summary>
         /// 获取公网IPv6。
         /// </summary>
         /// <returns>返回公网IPv6，如果获取失败，返回null。</returns>
-        public static string GetIpv6()
+        public static async Task<string> GetIpv6()
         {
             try
             {
-                var request = WebRequest.Create("https://ipv6.lookup.test-ipv6.com/ip/");
-                var response = request.GetResponse();
-                using (StreamReader stream = new StreamReader(response.GetResponseStream()))
+                var dics = IPv6GetterCreator.Create().ToDictionary(g => g.GetIP(), g => g.Description);
+                string result = await dics.Keys.WhenAny(task =>
                 {
-                    string json = stream.ReadToEnd();
-                    dynamic result = JsonConvert.DeserializeObject(json);
-                    string ip = result.ip;
-                    if (string.IsNullOrWhiteSpace(ip) == false)
+                    string ip = task.Result;
+                    if (ip == null)
                     {
-                        Log.Print($"当前公网IPv6为{ ip }（test-ipv6接口）。");
-                        return result.ip;
+                        Log.Print($"从 { dics[task] } 获取公网IPv6失败。");
                     }
                     else
                     {
-                        Log.Print("没有检测到公网IPv6。");
-                        return null;
+                        Log.Print($"当前公网IPv6为 { ip }（{ dics[task] }）。");
                     }
+
+                    return ip != null;
+                },
+                TimeSpan.FromSeconds(30));
+
+                if (result == null)
+                {
+                    Log.Print($"获取公网IPv6失败，所有API接口均无法返回IPv6地址。");
                 }
+
+                return result;
             }
             catch (Exception e)
             {

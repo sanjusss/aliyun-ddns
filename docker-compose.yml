@@ -6,3 +6,4 @@ services:
     build:
       context: .
       dockerfile: aliyun-ddns/Dockerfile
+    network_mode: host

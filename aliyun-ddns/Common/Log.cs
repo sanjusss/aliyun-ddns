@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace aliyun_ddns
+namespace aliyun_ddns.Common
 {
     /// <summary>
     /// 日志输出类。

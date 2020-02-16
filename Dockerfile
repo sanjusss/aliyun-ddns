@@ -1,8 +1,8 @@
 ﻿
-ARG runtime=3.0-runtime
+ARG runtime=3.1-runtime
 ARG version=0
 
-FROM mcr.microsoft.com/dotnet/core/sdk:3.0 AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
 MAINTAINER sanjusss <sanjusss@qq.com>
 WORKDIR /src
 COPY . /src

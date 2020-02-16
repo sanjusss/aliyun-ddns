@@ -1,7 +1,7 @@
-FROM microsoft/dotnet:3.0-runtime AS base
+FROM microsoft/dotnet:3.1-runtime AS base
 WORKDIR /app
 
-FROM microsoft/dotnet:3.0-sdk AS build
+FROM microsoft/dotnet:3.1-sdk AS build
 WORKDIR /src
 COPY aliyun-ddns/aliyun-ddns.csproj aliyun-ddns/
 RUN dotnet restore aliyun-ddns/aliyun-ddns.csproj
