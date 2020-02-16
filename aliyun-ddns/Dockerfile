@@ -1,18 +1,11 @@
-FROM microsoft/dotnet:3.1-runtime AS base
-WORKDIR /app
-
-FROM microsoft/dotnet:3.1-sdk AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
+MAINTAINER sanjusss <sanjusss@qq.com>
 WORKDIR /src
-COPY aliyun-ddns/aliyun-ddns.csproj aliyun-ddns/
-RUN dotnet restore aliyun-ddns/aliyun-ddns.csproj
-COPY . .
-WORKDIR /src/aliyun-ddns
-RUN dotnet build aliyun-ddns.csproj -c Release -o /app
+COPY . /src
+RUN dotnet publish -c Release -o /app --version-suffix=$version ./aliyun-ddns.csproj
 
-FROM build AS publish
-RUN dotnet publish aliyun-ddns.csproj -c Release -o /app
-
-FROM base AS final
+FROM mcr.microsoft.com/dotnet/core/runtime:3.1 AS final
+MAINTAINER sanjusss <sanjusss@qq.com>
 WORKDIR /app
-COPY --from=publish /app .
+COPY --from=build /app .
 ENTRYPOINT ["dotnet", "aliyun-ddns.dll"]
