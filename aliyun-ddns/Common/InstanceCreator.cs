@@ -11,36 +11,6 @@ namespace aliyun_ddns.Common
     /// </summary>
     public static class InstanceCreator
     {
-        static InstanceCreator()
-        {
-            //LoadReferencedAssembly();
-        }
-
-        /// <summary>
-        /// 载入所有相关的程序集。
-        /// </summary>
-        private static void LoadReferencedAssembly()
-        {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            var names = new HashSet<AssemblyName>(assemblies.Select(a => a.GetName()));
-            foreach (var a in assemblies)
-            {
-                LoadReferencedAssembly(a, ref names);
-            }
-        }
-
-        private static void LoadReferencedAssembly(Assembly assembly, ref HashSet<AssemblyName> names)
-        {
-            foreach (AssemblyName name in assembly.GetReferencedAssemblies())
-            {
-                if (names.Contains(name) == false)
-                {
-                    names.Add(name);
-                    LoadReferencedAssembly(Assembly.Load(name), ref names);
-                }
-            }
-        }
-
         public static IEnumerable<T> Create<T>(Func<Type, bool> check = null)
         {
             try
