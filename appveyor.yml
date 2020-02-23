@@ -1,5 +1,8 @@
 ﻿
-version: 0.1.6-{build}
+version: 0.2.1-{build}
+branches:
+  only:
+  - master
 pull_requests:
     do_not_increment_build_number: true
 shallow_clone: true
