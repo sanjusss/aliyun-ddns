@@ -22,10 +22,6 @@ namespace aliyun_ddns
     public class DomainUpdater
     {
         /// <summary>
-        /// 运行配置。
-        /// </summary>
-        private readonly Options _op;
-        /// <summary>
         /// 每次请求的记录上限。
         /// </summary>
         private const long _pageSize = 100;
@@ -49,18 +45,13 @@ namespace aliyun_ddns
             ANY
         }
 
-        public DomainUpdater(Options op)
-        {
-            _op = op;
-        }
-
         /// <summary>
         /// 运行自动更新。
         /// </summary>
         public void Run()
         {
-            TimeSpan maxWait = new TimeSpan(0, 0, _op.REDO);
-            string[] domains = _op.DOMAIN.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            TimeSpan maxWait = new TimeSpan(0, 0, Options.Instance.REDO);
+            string[] domains = Options.Instance.DOMAIN.Split(',', StringSplitOptions.RemoveEmptyEntries);
             HashSet<IpType> targetTypes = GetTargetTypes();
             if (targetTypes.Count == 0)
             {
@@ -146,7 +137,7 @@ namespace aliyun_ddns
         /// <returns>目标记录类型的集合</returns>
         private HashSet<IpType> GetTargetTypes()
         {
-            HashSet<string> inputTypes = new HashSet<string>(_op.TYPE.Split(',', StringSplitOptions.RemoveEmptyEntries));
+            HashSet<string> inputTypes = new HashSet<string>(Options.Instance.TYPE.Split(',', StringSplitOptions.RemoveEmptyEntries));
             HashSet<IpType> targetTypes = new HashSet<IpType>();
             if (inputTypes.Contains("A"))
             {
@@ -231,7 +222,7 @@ namespace aliyun_ddns
         /// <returns>新的阿里云客户端</returns>
         private DefaultAcsClient GetNewClient()
         {
-            var clientProfile = DefaultProfile.GetProfile(_op.ENDPOINT, _op.AKID, _op.AKSCT);
+            var clientProfile = DefaultProfile.GetProfile(Options.Instance.ENDPOINT, Options.Instance.AKID, Options.Instance.AKSCT);
             return new DefaultAcsClient(clientProfile);
         }
 
@@ -377,7 +368,7 @@ namespace aliyun_ddns
                     RR = rr,
                     Type = type.ToString(),
                     _Value = ip,
-                    TTL = _op.TTL
+                    TTL = Options.Instance.TTL
                 };
                 var response = client.GetAcsResponse(request);
                 if (response.HttpResponse.isSuccess())
@@ -425,7 +416,7 @@ namespace aliyun_ddns
                     RR = rd.RR,
                     Type = rd.Type,
                     _Value = ip,
-                    TTL = _op.TTL
+                    TTL = Options.Instance.TTL
                 };
                 var response = client.GetAcsResponse(request);
                 if (response.HttpResponse.isSuccess())

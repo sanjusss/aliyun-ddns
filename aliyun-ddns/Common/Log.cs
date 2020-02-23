@@ -9,22 +9,13 @@ namespace aliyun_ddns.Common
     /// </summary>
     public static class Log
     {
-        public static Options OP { get; set; } = null;
-
         /// <summary>
         /// 打印日志到屏幕。
         /// </summary>
         /// <param name="msg">日志信息</param>
         public static void Print(string msg)
         {
-            if (OP == null)
-            {
-                Console.WriteLine($"[{ DateTime.Now }]{ msg }");
-            }
-            else
-            {
-                Console.WriteLine($"[{ DateTime.UtcNow.AddHours(OP.TIMEZONE) }]{ msg }");
-            }
+            Console.WriteLine($"[{ DateTime.UtcNow.AddHours(Options.Instance.TIMEZONE) }]{ msg }");
         }
     }
 }
