@@ -21,34 +21,67 @@ namespace aliyun_ddns
         public double TIMEZONE { get; set; } = 8;
         [Option("type", Required = false, Default = "A,AAAA", HelpText = "需要更改的记录类型，可以用“,”隔开，只能是“A”、“AAAA”或“A,AAAA”。")]
         public string TYPE { get; set; } = "A,AAAA";
+        [Option("cnipv4", Required = false, Default = false, HelpText = "仅使用中国服务器检测公网IPv4地址。")]
+        public bool CNIPV4 { get; set; } = false;
 
-        public static Options GetOptionsFromEnvironment(ref Options op)
+        private static Options _instance = null;
+        private static object _instanceLocker = new object();
+        public static Options Instance 
         {
-            op.AKID = Environment.GetEnvironmentVariable("AKID") ?? op.AKID;
-            op.AKSCT = Environment.GetEnvironmentVariable("AKSCT") ?? op.AKSCT;
-            op.ENDPOINT = Environment.GetEnvironmentVariable("ENDPOINT") ?? op.ENDPOINT;
-            op.DOMAIN = Environment.GetEnvironmentVariable("DOMAIN") ?? op.DOMAIN;
-            op.TYPE = Environment.GetEnvironmentVariable("TYPE") ?? op.TYPE;
+            get
+            {
+                lock (_instanceLocker)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new Options();
+                        _instance.InitOptionsFromEnvironment();
+                    }
+
+                    return _instance;
+                }
+            }
+            set
+            {
+                lock (_instanceLocker)
+                {
+                    value.InitOptionsFromEnvironment();
+                    _instance = value;
+                }
+            }
+        }
+
+        private void InitOptionsFromEnvironment()
+        {
+            AKID = Environment.GetEnvironmentVariable("AKID") ?? AKID;
+            AKSCT = Environment.GetEnvironmentVariable("AKSCT") ?? AKSCT;
+            ENDPOINT = Environment.GetEnvironmentVariable("ENDPOINT") ?? ENDPOINT;
+            DOMAIN = Environment.GetEnvironmentVariable("DOMAIN") ?? DOMAIN;
+            TYPE = Environment.GetEnvironmentVariable("TYPE") ?? TYPE;
 
             string redoText = Environment.GetEnvironmentVariable("REDO");
             if (int.TryParse(redoText, out int redo))
             {
-                op.REDO = redo;
+                REDO = redo;
             }
 
             string ttlText = Environment.GetEnvironmentVariable("TTL");
             if (long.TryParse(ttlText, out long ttl))
             {
-                op.TTL = ttl;
+                TTL = ttl;
             }
 
             string tzText = Environment.GetEnvironmentVariable("TIMEZONE");
             if (double.TryParse(tzText, out double tz))
             {
-                op.TIMEZONE = tz;
+                TIMEZONE = tz;
             }
 
-            return op;
+            string cnipv4Text = Environment.GetEnvironmentVariable("CNIPV4");
+            if (bool.TryParse(cnipv4Text, out bool cnipv4))
+            {
+                CNIPV4 = cnipv4;
+            }
         }
     }
 }
