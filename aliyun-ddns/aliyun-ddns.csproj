@@ -96,8 +96,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="aliyun-net-sdk-alidns" Version="2.0.16" />
-    <PackageReference Include="CommandLineParser" Version="2.7.82" />
+    <PackageReference Include="aliyun-net-sdk-alidns" Version="2.0.18" />
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
   </ItemGroup>
 
 </Project>
