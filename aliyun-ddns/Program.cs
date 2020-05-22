@@ -1,5 +1,4 @@
-﻿using aliyun_ddns.Common;
-using CommandLine;
+﻿using CommandLine;
 using System;
 
 namespace aliyun_ddns

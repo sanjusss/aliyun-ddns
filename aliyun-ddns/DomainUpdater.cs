@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +14,7 @@ using static Aliyun.Acs.Alidns.Model.V20150109.DescribeSubDomainRecordsResponse;
 
 namespace aliyun_ddns
 {
-    using Record=DescribeSubDomainRecords_Record;
+    using Record = DescribeSubDomainRecords_Record;
     /// <summary>
     /// 域名更新类。
     /// </summary>
@@ -222,8 +221,10 @@ namespace aliyun_ddns
         /// <returns>新的阿里云客户端</returns>
         private DefaultAcsClient GetNewClient()
         {
-            var clientProfile = DefaultProfile.GetProfile(Options.Instance.ENDPOINT, Options.Instance.AKID, Options.Instance.AKSCT);
-            return new DefaultAcsClient(clientProfile);
+            //var clientProfile = DefaultProfile.GetProfile(Options.Instance.ENDPOINT, Options.Instance.AKID, Options.Instance.AKSCT);
+            //return new DefaultAcsClient(clientProfile);
+            return new DefaultAcsClient(DefaultProfile.GetProfile(),
+                new Aliyun.Acs.Core.Auth.BasicCredentials(Options.Instance.AKID, Options.Instance.AKSCT));
         }
 
         /// <summary>

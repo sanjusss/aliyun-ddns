@@ -16,7 +16,6 @@ docker run -d --restart=always --net=host \
     -e "AKID=[ALIYUN's AccessKey-ID]" \
     -e "AKSCT=[ALIYUN's AccessKey-Secret]" \
     -e "DOMAIN=ddns.aliyun.win" \
-    -e "ENDPOINT=cn-hangzhou" \
     -e "REDO=30" \
     -e "TTL=60" \
     -e "TIMEZONE=8.0" \
@@ -28,7 +27,6 @@ docker run -d --restart=always --net=host \
 |AKID|阿里云的Access Key ID。[获取阿里云AccessToken](https://usercenter.console.aliyun.com/)|access key id|
 |AKSCT|阿里云的Access Key Secret。|access key secret|
 |DOMAIN|需要更新的域名，多个域名需要“,”分隔。|my.domain.com|
-|ENDPOINT|[详见定义](https://help.aliyun.com/document_detail/40654.html?spm=a2c4e.11153987.0.0.6d85366aUfTWbG)。|cn-hangzhou|
 |REDO|更新间隔，单位秒。建议大于等于TTL/2。|300|
 |TTL|服务器缓存解析记录的时长，单位秒，普通用户最小为600。|600|
 |TIMEZONE|输出日志时的时区，单位小时。|8|
@@ -52,7 +50,6 @@ dotnet aliyun-ddns.dll \
     -u "ALIYUN's AccessKey-ID" \
     -p "ALIYUN's AccessKey-Secret" \
     -d "ddns.aliyun.win,ddns2.aliyun2.win" \
-    -e "cn-hangzhou" \
     -i 300 \
     -t 600 \
     --timezone 8.0 \
@@ -65,7 +62,6 @@ dotnet aliyun-ddns.dll \
 |u|阿里云的Access Key ID。[获取阿里云AccessToken](https://usercenter.console.aliyun.com/)|access key id|
 |p|阿里云的Access Key Secret。|access key secret|
 |d|需要更新的域名，多个域名需要“,”分隔。|my.domain.com|
-|e|[详见定义](https://help.aliyun.com/document_detail/40654.html?spm=a2c4e.11153987.0.0.6d85366aUfTWbG)。|cn-hangzhou|
 |i|更新间隔，单位秒。建议大于等于TTL/2。|300|
 |t|服务器缓存解析记录的时长，单位秒，普通用户最小为600。|600|
 |timezone|输出日志时的时区，单位小时。|8|
