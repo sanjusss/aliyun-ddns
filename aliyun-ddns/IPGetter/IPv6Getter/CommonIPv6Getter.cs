@@ -4,6 +4,7 @@ using System.Text;
 
 namespace aliyun_ddns.IPGetter.IPv6Getter
 {
+    [Ignore]
     public class CommonIPv6Getter : BaseIPv6Getter
     {
         private readonly string _description;

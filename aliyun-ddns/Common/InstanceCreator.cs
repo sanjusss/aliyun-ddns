@@ -13,6 +13,7 @@ namespace aliyun_ddns.Common
     {
         public static IEnumerable<T> Create<T>(Func<Type, bool> check = null)
         {
+            var target = typeof(T);
             try
             {
                 List<T> instances = new List<T>();
@@ -22,7 +23,7 @@ namespace aliyun_ddns.Common
                     {
                         try
                         {
-                            if (t.IsSubclassOf(typeof(T)) &&
+                            if (target.IsAssignableFrom(t) &&
                                 t.IsAbstract == false &&
                                 t.IsInterface == false &&
                                 (check == null || check(t)))

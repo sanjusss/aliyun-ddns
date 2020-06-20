@@ -13,7 +13,7 @@ namespace aliyun_ddns.IPGetter.IPv6Getter
                     new CommonIPv6Getter("ip.sb接口", "https://api-ipv6.ip.sb/ip", 101),
                     new CommonIPv6Getter("ident.me接口", "http://v6.ident.me/", 101),
                     new CommonIPv6Getter("ipify.org接口", "https://api6.ipify.org/", 101),
-                    new CommonIPv6Getter("test-ipv6.com/接口", "https://ipv6.lookup.test-ipv6.com/ip/", 100)
+                    new CommonIPv6Getter("test-ipv6.com接口", "https://ipv6.lookup.test-ipv6.com/ip/", 100)
                };
 
         public static IEnumerable<IIPv6Getter> Create()
