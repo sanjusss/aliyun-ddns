@@ -23,6 +23,8 @@ namespace aliyun_ddns
         public string TYPE { get; set; } = "A,AAAA";
         [Option("cnipv4", Required = false, Default = false, HelpText = "仅使用中国服务器检测公网IPv4地址。")]
         public bool CNIPV4 { get; set; } = false;
+        [Option('h',"webhook", Required = false, Default = null, HelpText = "WEB HOOK推送地址。")]
+        public string WEBHOOK { get; set; } = null;
 
         private static Options _instance = null;
         private static object _instanceLocker = new object();
@@ -53,34 +55,48 @@ namespace aliyun_ddns
 
         private void InitOptionsFromEnvironment()
         {
-            AKID = Environment.GetEnvironmentVariable("AKID") ?? AKID;
-            AKSCT = Environment.GetEnvironmentVariable("AKSCT") ?? AKSCT;
-            //ENDPOINT = Environment.GetEnvironmentVariable("ENDPOINT") ?? ENDPOINT;
-            DOMAIN = Environment.GetEnvironmentVariable("DOMAIN") ?? DOMAIN;
-            TYPE = Environment.GetEnvironmentVariable("TYPE") ?? TYPE;
+            AKID = GetEnvironmentVariable("AKID") ?? AKID;
+            AKSCT = GetEnvironmentVariable("AKSCT") ?? AKSCT;
+            //ENDPOINT = GetEnvironmentVariable("ENDPOINT") ?? ENDPOINT;
+            DOMAIN = GetEnvironmentVariable("DOMAIN") ?? DOMAIN;
+            TYPE = GetEnvironmentVariable("TYPE") ?? TYPE;
+            WEBHOOK = GetEnvironmentVariable("WEBHOOK") ?? WEBHOOK;
 
-            string redoText = Environment.GetEnvironmentVariable("REDO");
+            string redoText = GetEnvironmentVariable("REDO");
             if (int.TryParse(redoText, out int redo))
             {
                 REDO = redo;
             }
 
-            string ttlText = Environment.GetEnvironmentVariable("TTL");
+            string ttlText = GetEnvironmentVariable("TTL");
             if (long.TryParse(ttlText, out long ttl))
             {
                 TTL = ttl;
             }
 
-            string tzText = Environment.GetEnvironmentVariable("TIMEZONE");
+            string tzText = GetEnvironmentVariable("TIMEZONE");
             if (double.TryParse(tzText, out double tz))
             {
                 TIMEZONE = tz;
             }
 
-            string cnipv4Text = Environment.GetEnvironmentVariable("CNIPV4");
+            string cnipv4Text = GetEnvironmentVariable("CNIPV4");
             if (bool.TryParse(cnipv4Text, out bool cnipv4))
             {
                 CNIPV4 = cnipv4;
+            }
+        }
+
+        private static  string GetEnvironmentVariable(string variable)
+        {
+            string res = Environment.GetEnvironmentVariable(variable);
+            if (string.IsNullOrEmpty(res))
+            {
+                return null;
+            }
+            else 
+            {
+                return res;
             }
         }
     }

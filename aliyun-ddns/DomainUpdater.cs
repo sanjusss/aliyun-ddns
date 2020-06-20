@@ -2,6 +2,7 @@
 using Aliyun.Acs.Core;
 using Aliyun.Acs.Core.Profile;
 using aliyun_ddns.Common;
+using aliyun_ddns.WebHook;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -87,6 +88,7 @@ namespace aliyun_ddns
             Task.WaitAll(tasks.Values.ToArray());
             var ips = tasks.ToDictionary(p => p.Key, p => p.Value.Result);
 
+            List<WebHookItem> items = new List<WebHookItem>();
             foreach (var i in domains)
             {
                 var oldRecords = GetRecords(i);//获取域名的所有记录
@@ -113,9 +115,10 @@ namespace aliyun_ddns
                     }
 
                     //根据已有记录数量决定操作。
+                    bool success = false;
                     if (typedRecords.Count == 1)
                     {
-                        UpdateRecord(typedRecords[0], j.Value);
+                        success = UpdateRecord(typedRecords[0], j.Value);
                     }
                     else
                     {
@@ -124,9 +127,24 @@ namespace aliyun_ddns
                             DeleteRecords(typedRecords[0].DomainName, typedRecords[0].RR, type);
                         }
 
-                        AddRecord(j.Key, i, j.Value);
+                        success = AddRecord(j.Key, i, j.Value);
+                    }
+
+                    if (success)
+                    {
+                        items.Add(new WebHookItem
+                        {
+                            recordType = j.Key.ToString(),
+                            domain = i,
+                            ip = j.Value
+                        });
                     }
                 }
+            }
+
+            if (items.Count > 0)
+            {
+                WebHookAction.Push(items);
             }
         }
 
@@ -405,7 +423,7 @@ namespace aliyun_ddns
             else if (ip == rd._Value)
             {
                 Log.Print($"{ rd.Type }记录{ rd.RR }.{ rd.DomainName }不需要更新。");
-                return true;
+                return false;
             }
 
             try

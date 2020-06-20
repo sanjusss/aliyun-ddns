@@ -32,6 +32,7 @@ docker run -d --restart=always --net=host \
 |TIMEZONE|输出日志时的时区，单位小时。|8|
 |TYPE|需要更改的记录类型，可以用“,”隔开，只能是“A”、“AAAA”或“A,AAAA”。|A,AAAA|
 |CNIPV4|检查IPv4地址时，仅使用中国服务器。|false|
+|WEBHOOK|WEBHOOK推送地址。|无|
 
 以上环境变量均存在默认值，添加需要修改的环境变量即可。
 
@@ -67,5 +68,6 @@ dotnet aliyun-ddns.dll \
 |timezone|输出日志时的时区，单位小时。|8|
 |type|需要更改的记录类型，可以用“,”隔开，只能是“A”、“AAAA”或“A,AAAA”。|A,AAAA|
 |cnipv4|检查IPv4地址时，仅使用中国服务器。|false|
+|webhook|WEBHOOK推送地址。|无|
 
 以上参数均存在默认值，添加需要修改的参数即可。
