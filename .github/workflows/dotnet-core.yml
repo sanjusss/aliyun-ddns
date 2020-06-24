@@ -22,4 +22,16 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
     - name: Publish
-      run: dotnet publish --configuration Release --no-build --output ./out
+      run: dotnet publish --configuration Release --no-build --output ./.github/out
+    
+    - name: Set up Docker Buildx
+      id: buildx
+      uses: crazy-max/ghaction-docker-buildx@v1
+      with:
+        version: latest
+    
+    - name: Docker Buildx (no push)
+      run: |
+        docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64 \
+          --output "type=image,push=false" \
+          --file Dockerfile ./github
