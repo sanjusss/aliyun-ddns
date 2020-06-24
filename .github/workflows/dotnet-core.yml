@@ -80,7 +80,7 @@ jobs:
           --file ./.github/Dockerfile ./.github
         
     - name: Docker Buildx (push on tags)
-      if: success() && startsWith(GITHUB_REF, 'refs/pull')
+      if: success() && startsWith(${{ GITHUB_REF }}, 'refs/pull')
       run: echo $GITHUB_REF
 
     - name: Docker Check Manifest
