@@ -1,9 +1,0 @@
-version: '3.4'
-
-services:
-  aliyun-ddns:
-    image: ${DOCKER_REGISTRY-}aliyunddns
-    build:
-      context: .
-      dockerfile: aliyun-ddns/Dockerfile
-    network_mode: host
