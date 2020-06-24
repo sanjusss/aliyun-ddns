@@ -116,7 +116,7 @@ jobs:
     - name: Create zip
       if: success() && startsWith(github.ref, 'refs/tags')
       run: |
-        zip -q -r aliyun-ddns-${{ github.ref }}.zip ./.github/out/*
+        zip -q -r aliyun-ddns-${GITHUB_REF#refs/tags/}.zip ./.github/out/*
           
     - name: Create Release
       if: success() && startsWith(github.ref, 'refs/tags')
@@ -125,8 +125,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: ${GITHUB_REF#refs/tags/}
+        release_name: Release ${GITHUB_REF#refs/tags/}
         draft: false
         prerelease: false
     - name: Upload Release Asset
@@ -137,6 +137,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./aliyun-ddns-${{ github.ref }}.zip
-        asset_name: aliyun-ddns-${{ github.ref }}.zip
+        asset_path: ./aliyun-ddns-${GITHUB_REF#refs/tags/}.zip
+        asset_name: aliyun-ddns-${GITHUB_REF#refs/tags/}.zip
         asset_content_type: application/zip
