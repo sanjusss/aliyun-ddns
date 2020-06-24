@@ -112,3 +112,31 @@ jobs:
       if: always() && !startsWith(github.event_name, 'pull_request')
       run: |
         rm -f ${HOME}/.docker/config.json
+        
+    - name: Create zip
+      if: success() && startsWith(github.ref, 'refs/tags')
+      run: |
+        zip -q -r aliyun-ddns-${{ github.ref }}.zip ./.github/out/*
+          
+    - name: Create Release
+      if: success() && startsWith(github.ref, 'refs/tags')
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+    - name: Upload Release Asset
+      if: success() && startsWith(github.ref, 'refs/tags')
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
+        asset_path: ./aliyun-ddns-${{ github.ref }}.zip
+        asset_name: aliyun-ddns-${{ github.ref }}.zip
+        asset_content_type: application/zip
