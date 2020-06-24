@@ -7,7 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "aliyun-ddns", "aliyun-ddns\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4B571F9E-C2B5-4DC1-8580-AC782BEFAC43}"
 	ProjectSection(SolutionItems) = preProject
-		Dockerfile = Dockerfile
 		LICENSE = LICENSE
 		ReadMe.md = ReadMe.md
 	EndProjectSection
