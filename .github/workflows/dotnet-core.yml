@@ -63,19 +63,19 @@ jobs:
       if: success() && !startsWith(github.event_name, 'pull_request')
       run: |
         docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
-          --output "type=image,push=true" \
+          --push \
           --tag "${{ steps.prepare.outputs.docker_image }}:latest" \
           --file ./.github/Dockerfile ./.github
         docker buildx build --platform linux/amd64 \
-          --output "type=image,push=true" \
+          --push \
           --tag "${{ steps.prepare.outputs.docker_image }}:linux-amd64" \
           --file ./.github/Dockerfile ./.github
         docker buildx build --platform linux/arm64 \
-          --output "type=image,push=true" \
+          --push \
           --tag "${{ steps.prepare.outputs.docker_image }}:linux-arm64v8" \
           --file ./.github/Dockerfile ./.github
         docker buildx build --platform linux/arm/v7 \
-          --output "type=image,push=true" \
+          --push \
           --tag "${{ steps.prepare.outputs.docker_image }}:linux-arm32v7" \
           --file ./.github/Dockerfile ./.github
         
@@ -83,19 +83,19 @@ jobs:
       if: success() && startsWith(github.ref, 'refs/tags')
       run: |
         docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
-          --output "type=image,push=true" \
+          --push \
           --tag "${{ steps.prepare.outputs.docker_image }}:${GITHUB_REF#refs/tags/}" \
           --file ./.github/Dockerfile ./.github
         docker buildx build --platform linux/amd64 \
-          --output "type=image,push=true" \
+          --push \
           --tag "${{ steps.prepare.outputs.docker_image }}:${GITHUB_REF#refs/tags/}-linux-amd64" \
           --file ./.github/Dockerfile ./.github
         docker buildx build --platform linux/arm64 \
-          --output "type=image,push=true" \
+          --push \
           --tag "${{ steps.prepare.outputs.docker_image }}:${GITHUB_REF#refs/tags/}-linux-arm64v8" \
           --file ./.github/Dockerfile ./.github
         docker buildx build --platform linux/arm/v7 \
-          --output "type=image,push=true" \
+          --push \
           --tag "${{ steps.prepare.outputs.docker_image }}:${GITHUB_REF#refs/tags/}-linux-arm32v7" \
           --file ./.github/Dockerfile ./.github
 
