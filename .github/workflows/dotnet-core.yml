@@ -22,4 +22,4 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
     - name: Publish
-      run: dotnet pushlish --configuration Release --no-build --output ./out
+      run: dotnet publish --configuration Release --no-build --output ./out
