@@ -80,8 +80,24 @@ jobs:
           --file ./.github/Dockerfile ./.github
         
     - name: Docker Buildx (push on tags)
-      if: success() && startsWith(github.ref, 'refs/pull')
-      run: echo $GITHUB_REF
+      if: success() && startsWith(github.ref, 'refs/tags')
+      run: |
+        docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
+          --output "type=image,push=true" \
+          --tag "${{ steps.prepare.outputs.docker_image }}:${GITHUB_REF#refs/tags/}" \
+          --file ./.github/Dockerfile ./.github
+        docker buildx build --platform linux/amd64 \
+          --output "type=image,push=true" \
+          --tag "${{ steps.prepare.outputs.docker_image }}:${GITHUB_REF#refs/tags/}-linux-amd64" \
+          --file ./.github/Dockerfile ./.github
+        docker buildx build --platform linux/arm64 \
+          --output "type=image,push=true" \
+          --tag "${{ steps.prepare.outputs.docker_image }}:${GITHUB_REF#refs/tags/}-linux-arm64v8" \
+          --file ./.github/Dockerfile ./.github
+        docker buildx build --platform linux/arm/v7 \
+          --output "type=image,push=true" \
+          --tag "${{ steps.prepare.outputs.docker_image }}:${GITHUB_REF#refs/tags/}-linux-arm32v7" \
+          --file ./.github/Dockerfile ./.github
 
     - name: Docker Check Manifest
       if: success() && !startsWith(github.event_name, 'pull_request')
