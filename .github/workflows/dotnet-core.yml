@@ -34,6 +34,8 @@ jobs:
       run: dotnet build --configuration Release --no-restore
     - name: Publish
       run: dotnet publish --configuration Release --no-build --output ./.github/out
+    - name: Delete extra files
+      run: rm -f ./.github/out/aliyun-ddns ./.github/out/aliyun-ddns.pdb
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2
       with:
@@ -122,7 +124,7 @@ jobs:
     - name: Create zip
       if: success() && startsWith(github.ref, 'refs/tags')
       run: |
-        zip -q -r ${{ steps.zipname.outputs.zip_name }} ./.github/out/*
+        zip --junk-paths -q -r ${{ steps.zipname.outputs.zip_name }} ./.github/out/*
           
     - name: Create Release
       if: success() && startsWith(github.ref, 'refs/tags')
