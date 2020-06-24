@@ -3,8 +3,19 @@ name: .NET Core
 on:
   push:
     branches: [ master ]
+    tags: '*'
+    paths:
+      - "**"
+      - "!**.MD"
+      - "!LICENSE"
+      - "!.gitignore"
   pull_request:
     branches: [ master ]
+    paths:
+      - "**"
+      - "!**.MD"
+      - "!LICENSE"
+      - "!.gitignore"
 
 jobs:
   build:
@@ -28,8 +39,56 @@ jobs:
       id: buildx
       uses: crazy-max/ghaction-docker-buildx@v3.1.0
     
+    - name: Available platforms
+      run: echo ${{ steps.buildx.outputs.platforms }}
+      
+    - name: Prepare
+      id: prepare
+      run: |
+        echo ::set-output name=docker_platforms::linux/amd64,linux/arm/v7,linux/arm64
+        echo ::set-output name=docker_image::${{ secrets.DOCKER_HUB_USER }}/aliyun-ddns
+        
     - name: Docker Buildx (no push)
       run: |
         docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64 \
           --output "type=image,push=false" \
           --file ./.github/Dockerfile ./.github
+           
+    - name: Docker Hub Login
+      if: success() && !startsWith(github.event_name, 'pull_request')
+      run: |
+        docker login --username "${{ secrets.DOCKER_HUB_USER }}" -p ${{ secrets.DOCKER_HUB_PASS }}
+        
+    - name: Docker Buildx (push)
+      if: success() && !startsWith(github.event_name, 'pull_request')
+      run: |
+        docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
+          --output "type=image,push=true" \
+          --tag "${{ steps.prepare.outputs.docker_image }}:latest" \
+          --file ./.github/Dockerfile ./.github
+        docker buildx build --platform linux/amd64 \
+          --output "type=image,push=true" \
+          --tag "${{ steps.prepare.outputs.docker_image }}:linux-amd64" \
+          --file ./.github/Dockerfile ./.github
+        docker buildx build --platform linux/arm64 \
+          --output "type=image,push=true" \
+          --tag "${{ steps.prepare.outputs.docker_image }}:linux-arm64v8" \
+          --file ./.github/Dockerfile ./.github
+        docker buildx build --platform linux/arm/v7 \
+          --output "type=image,push=true" \
+          --tag "${{ steps.prepare.outputs.docker_image }}:linux-arm32v7" \
+          --file ./.github/Dockerfile ./.github
+        
+    - name: Docker Buildx (push on tags)
+      if: success() 
+      run: echo $GITHUB_REF
+
+    - name: Docker Check Manifest
+      if: success() && !startsWith(github.event_name, 'pull_request')
+      run: |
+        docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:latest
+
+    - name: Clear
+      if: always() && !startsWith(github.event_name, 'pull_request')
+      run: |
+        rm -f ${HOME}/.docker/config.json
