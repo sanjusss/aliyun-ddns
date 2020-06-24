@@ -1,5 +1,5 @@
 ﻿﻿
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/sanjusss/aliyun-ddns/.NET%20Core/master)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/sanjusss/aliyun-ddns/.NET%20Core)
 [![](https://img.shields.io/docker/stars/sanjusss/aliyun-ddns.svg?logo=docker)](https://hub.docker.com/r/sanjusss/aliyun-ddns)
 [![GitHub license](https://img.shields.io/github/license/sanjusss/aliyun-ddns.svg)](https://github.com/sanjusss/aliyun-ddns/blob/master/LICENSE)  
 [![GitHub tag](https://img.shields.io/github/tag/sanjusss/aliyun-ddns.svg)](https://github.com/sanjusss/aliyun-ddns/tags)
