@@ -1,4 +1,4 @@
-﻿using CommandLine;
+using CommandLine;
 using System;
 
 namespace aliyun_ddns
@@ -9,9 +9,9 @@ namespace aliyun_ddns
         public string AKID { get; set; } = "access key id";
         [Option('p', "access-key-secret", Required = false, Default = "access key secret", HelpText = "access key secret")]
         public string AKSCT { get; set; } = "access key secret";
-        [Option('e', "endpoint", Required = false, Default = "cn-hangzhou", HelpText = "Region Id，详见https://help.aliyun.com/document_detail/40654.html?spm=a2c4e.11153987.0.0.6d85366aUfTWbG")]
+        //[Option('e', "endpoint", Required = false, Default = "cn-hangzhou", HelpText = "Region Id，详见https://help.aliyun.com/document_detail/40654.html?spm=a2c4e.11153987.0.0.6d85366aUfTWbG")]
         //public string ENDPOINT { get; set; } = "cn-hangzhou";
-        //[Option('d', "domain", Required = false, Default = "my.domain.com", HelpText = "需要更新的域名，可以用“,”隔开。")]
+        [Option('d', "domain", Required = false, Default = "my.domain.com", HelpText = "需要更新的域名，可以用“,”隔开。")]
         public string DOMAIN { get; set; } = "my.domain.com";
         [Option('i', "interval", Required = false, Default = 300, HelpText = "执行域名更新的间隔，单位秒。")]
         public int REDO { get; set; } = 300;
