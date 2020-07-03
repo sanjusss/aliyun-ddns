@@ -19,8 +19,16 @@ namespace aliyun_ddns.IPGetter.IPv4Getter
         public static IEnumerable<IIPv4Getter> Create()
         {
             List<IIPv4Getter> getters = new List<IIPv4Getter>();
-            getters.AddRange(InstanceCreator.Create<IIPv4Getter>(Ignore.CheckType));
-            getters.AddRange(_definedGetters);
+            if (Options.Instance.CheckLocalNetworkAdaptor)
+            {
+                getters.Add(new LocalIPv4Getter());
+            }
+            else
+            {
+                getters.AddRange(InstanceCreator.Create<IIPv4Getter>(Ignore.CheckType));
+                getters.AddRange(_definedGetters);
+            }
+
             return getters;
         }
     }

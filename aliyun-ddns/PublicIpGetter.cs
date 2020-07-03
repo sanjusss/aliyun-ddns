@@ -21,7 +21,7 @@ namespace aliyun_ddns
             try
             {
                 var dics = IPv4GetterCreator.Create()
-                    .Where(g => Options.Instance.CNIPV4 == false || g.Order < 100)
+                    .Where(g => Options.Instance.CNIPv4 == false || g.Order < 100)
                     .ToDictionary(g => g.GetIP(), g => g.Description);
                 string result = await dics.Keys.WhenAny(task =>
                 {

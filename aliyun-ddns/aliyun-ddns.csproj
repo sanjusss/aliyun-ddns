@@ -83,7 +83,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>aliyun_ddns</RootNamespace>
-    <Version>0.2.5</Version>
+    <Version>0.2.6</Version>
     <Authors>sanjusss</Authors>
     <PackageProjectUrl>https://github.com/sanjusss/aliyun-ddns</PackageProjectUrl>
     <PackageLicenseUrl></PackageLicenseUrl>
@@ -91,14 +91,15 @@
     <RepositoryType>git</RepositoryType>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>BSD</PackageLicenseExpression>
-    <AssemblyVersion>0.2.5.0</AssemblyVersion>
-    <FileVersion>0.2.5.0</FileVersion>
+    <AssemblyVersion>0.2.6.0</AssemblyVersion>
+    <FileVersion>0.2.6.0</FileVersion>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="aliyun-net-sdk-alidns" Version="2.0.18" />
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="IPNetwork2" Version="2.5.211" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
