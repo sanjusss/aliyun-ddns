@@ -41,7 +41,7 @@ namespace aliyun_ddns
         [Option("ipv4nets", Required = false, Default = null, HelpText = "本地网卡的IPv4网段。格式示例：“192.168.1.0/24”。多个网段用“,”隔开。")]
         public string IPv4Networks { get; set; } = null;
 
-        [Option("ipv46nets", Required = false, Default = null, HelpText = "本地网卡的IPv6网段。格式示例：“2001:0db8::/64”。多个网段用“,”隔开。")]
+        [Option("ipv46nets", Required = false, Default = null, HelpText = "本地网卡的IPv6网段。格式示例：“240e::/16”。多个网段用“,”隔开。")]
         public string IPv6Networks { get; set; } = null;
 
         private static Options _instance = null;

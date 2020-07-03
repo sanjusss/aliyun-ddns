@@ -40,9 +40,9 @@ docker run -d --restart=always --net=host \
 |TYPE|需要更改的记录类型，可以用“,”隔开，只能是“A”、“AAAA”或“A,AAAA”。|A,AAAA|
 |CNIPV4|检查IPv4地址时，仅使用中国服务器。|false|
 |WEBHOOK|WEBHOOK推送地址。|无|
-|CHECKLOCAL|是否检查本地网卡IP。此选项将禁用在线API的IP检查。<br>网络模式必须设置为host<br>(Windows版docker无法读取本机IP)|false|
+|CHECKLOCAL|是否检查本地网卡IP。此选项将禁用在线API的IP检查。<br>网络模式必须设置为host。<br>(Windows版docker无法读取本机IP)|false|
 |IPV4NETS|本地网卡的IPv4网段。格式示例：“192.168.1.0/24”。多个网段用“,”隔开。|无|
-|IPV6NETS|本地网卡的IPv6网段。格式示例：“2001:0db8::/64”。多个网段用“,”隔开。|无|
+|IPV6NETS|本地网卡的IPv6网段。格式示例：“240e::/16”。多个网段用“,”隔开。|无|
 
 以上环境变量均存在默认值，添加需要修改的环境变量即可。
 
@@ -81,6 +81,6 @@ dotnet aliyun-ddns.dll \
 |webhook|WEBHOOK推送地址。|无|
 |checklocal|是否检查本地网卡IP。此选项将禁用在线API的IP检查。|false|
 |ipv4nets|本地网卡的IPv4网段。格式示例：“192.168.1.0/24”。多个网段用“,”隔开。|无|
-|ipv6nets|本地网卡的IPv6网段。格式示例：“2001:0db8::/64”。多个网段用“,”隔开。|无|
+|ipv6nets|本地网卡的IPv6网段。格式示例：“240e::/16”。多个网段用“,”隔开。|无|
 
 以上参数均存在默认值，添加需要修改的参数即可。
