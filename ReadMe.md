@@ -8,12 +8,13 @@
 [![GitHub stars](https://img.shields.io/github/stars/sanjusss/aliyun-ddns.svg)](https://github.com/sanjusss/aliyun-ddns/stargazers)
 
 # 功能
-- 通过在线API获取公网IPv4地址
-- 通过在线API获取公网IPv6地址
-- 通过本地网卡获取公网或内网IPv4地址
-- 通过本地网卡获取公网或内网IPv6地址
-- Docker容器支持
-- IP发生变化时，使用WebHook通知
+- 通过在线API获取公网IPv4地址，更新到域名A记录。
+- 通过在线API获取公网IPv6地址，更新到域名AAAA记录。
+- 通过本地网卡获取公网或内网IPv4地址，更新到域名A记录。
+- 通过本地网卡获取公网或内网IPv6地址，更新到域名AAAA记录。
+- 支持更新多个域名的记录。
+- 支持Docker容器，支持x64、ARMv7和ARMv8。
+- IP发生变化时，使用WebHook通知。
 
 # 使用方法
 
