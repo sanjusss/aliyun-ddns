@@ -15,7 +15,7 @@ namespace aliyun_ddns.Common
         /// <param name="msg">日志信息</param>
         public static void Print(string msg)
         {
-            Console.WriteLine($"[{ DateTime.UtcNow.AddHours(Options.Instance.TIMEZONE) }]{ msg }");
+            Console.WriteLine($"[{ DateTime.UtcNow.AddHours(Options.Instance.Timezone) }]{ msg }");
         }
     }
 }

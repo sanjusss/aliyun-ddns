@@ -50,8 +50,8 @@ namespace aliyun_ddns
         /// </summary>
         public void Run()
         {
-            TimeSpan maxWait = new TimeSpan(0, 0, Options.Instance.REDO);
-            string[] domains = Options.Instance.DOMAIN.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            TimeSpan maxWait = new TimeSpan(0, 0, Options.Instance.Redo);
+            string[] domains = Options.Instance.Domain.Split(',', StringSplitOptions.RemoveEmptyEntries);
             HashSet<IpType> targetTypes = GetTargetTypes();
             if (targetTypes.Count == 0)
             {
@@ -154,7 +154,7 @@ namespace aliyun_ddns
         /// <returns>目标记录类型的集合</returns>
         private HashSet<IpType> GetTargetTypes()
         {
-            HashSet<string> inputTypes = new HashSet<string>(Options.Instance.TYPE.Split(',', StringSplitOptions.RemoveEmptyEntries));
+            HashSet<string> inputTypes = new HashSet<string>(Options.Instance.Type.Split(',', StringSplitOptions.RemoveEmptyEntries));
             HashSet<IpType> targetTypes = new HashSet<IpType>();
             if (inputTypes.Contains("A"))
             {
@@ -242,7 +242,7 @@ namespace aliyun_ddns
             //var clientProfile = DefaultProfile.GetProfile(Options.Instance.ENDPOINT, Options.Instance.AKID, Options.Instance.AKSCT);
             //return new DefaultAcsClient(clientProfile);
             return new DefaultAcsClient(DefaultProfile.GetProfile(),
-                new Aliyun.Acs.Core.Auth.BasicCredentials(Options.Instance.AKID, Options.Instance.AKSCT));
+                new Aliyun.Acs.Core.Auth.BasicCredentials(Options.Instance.Akid, Options.Instance.Aksct));
         }
 
         /// <summary>

@@ -19,8 +19,16 @@ namespace aliyun_ddns.IPGetter.IPv6Getter
         public static IEnumerable<IIPv6Getter> Create()
         {
             List<IIPv6Getter> getters = new List<IIPv6Getter>();
-            getters.AddRange(InstanceCreator.Create<IIPv6Getter>(Ignore.CheckType));
-            getters.AddRange(_definedGetters);
+            if (Options.Instance.CheckLocalNetworkAdaptor)
+            {
+                getters.Add(new LocalIPv6Getter());
+            }
+            else
+            {
+                getters.AddRange(InstanceCreator.Create<IIPv6Getter>(Ignore.CheckType));
+                getters.AddRange(_definedGetters);
+            }
+
             return getters;
         }
     }

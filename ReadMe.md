@@ -7,6 +7,13 @@
 [![GitHub forks](https://img.shields.io/github/forks/sanjusss/aliyun-ddns.svg)](https://github.com/sanjusss/aliyun-ddns/network)
 [![GitHub stars](https://img.shields.io/github/stars/sanjusss/aliyun-ddns.svg)](https://github.com/sanjusss/aliyun-ddns/stargazers)
 
+# 功能
+- 通过在线API获取公网IPv4地址
+- 通过在线API获取公网IPv6地址
+- 通过本地网卡获取公网或内网IPv4地址
+- 通过本地网卡获取公网或内网IPv6地址
+- Docker容器支持
+- IP发生变化时，使用WebHook通知
 
 # 使用方法
 
@@ -33,6 +40,9 @@ docker run -d --restart=always --net=host \
 |TYPE|需要更改的记录类型，可以用“,”隔开，只能是“A”、“AAAA”或“A,AAAA”。|A,AAAA|
 |CNIPV4|检查IPv4地址时，仅使用中国服务器。|false|
 |WEBHOOK|WEBHOOK推送地址。|无|
+|CHECKLOCAL|是否检查本地网卡IP。此选项将禁用在线API的IP检查。<br>网络模式必须设置为host<br>(Windows版docker无法读取本机IP)|false|
+|IPV4NETS|本地网卡的IPv4网段。格式示例：“192.168.1.0/24”。多个网段用“,”隔开。|无|
+|IPV6NETS|本地网卡的IPv6网段。格式示例：“2001:0db8::/64”。多个网段用“,”隔开。|无|
 
 以上环境变量均存在默认值，添加需要修改的环境变量即可。
 
@@ -69,5 +79,8 @@ dotnet aliyun-ddns.dll \
 |type|需要更改的记录类型，可以用“,”隔开，只能是“A”、“AAAA”或“A,AAAA”。|A,AAAA|
 |cnipv4|检查IPv4地址时，仅使用中国服务器。|false|
 |webhook|WEBHOOK推送地址。|无|
+|checklocal|是否检查本地网卡IP。此选项将禁用在线API的IP检查。|false|
+|ipv4nets|本地网卡的IPv4网段。格式示例：“192.168.1.0/24”。多个网段用“,”隔开。|无|
+|ipv6nets|本地网卡的IPv6网段。格式示例：“2001:0db8::/64”。多个网段用“,”隔开。|无|
 
 以上参数均存在默认值，添加需要修改的参数即可。

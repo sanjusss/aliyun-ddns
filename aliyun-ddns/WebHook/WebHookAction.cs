@@ -13,7 +13,7 @@ namespace aliyun_ddns.WebHook
     {
         public static void Push(IEnumerable<WebHookItem> items)
         {
-            string url = Options.Instance.WEBHOOK;
+            string url = Options.Instance.WebHook;
             if (string.IsNullOrWhiteSpace(url))
             {
                 return;
