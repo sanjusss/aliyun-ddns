@@ -85,3 +85,23 @@ dotnet aliyun-ddns.dll \
 |ipv6nets|本地网卡的IPv6网段。格式示例：“240e::/16”。多个网段用“,”隔开。|无|
 
 以上参数均存在默认值，添加需要修改的参数即可。
+
+# 常见问题
+
+### 无法获取DNS记录
+#### 日志提示
+获取xxx.yyy.zzz的所有记录时出现异常：Aliyun.Acs.Core.Exceptions.ClientException: SDK.WebException : HttpWebRequest WebException occured, the request url is alidns.aliyuncs.com System.Net.WebException: Resource temporarily unavailable Resource temporarily unavailable  
+#### 可能的原因
+- alidns.aliyuncs.com服务器宕机
+- 当地电信运营商网络故障
+- docker容器无法访问网络
+#### 可能的解决方法
+我们自己可以解决的只有“docker容器无法访问网络”这个问题。  
+执行`curl https://alidns.aliyuncs.com`有返回内容（403之类的），说明是docker容器无法访问网络。  
+如果之前手动修改过防火墙设置和docker网桥，请先修改回去。  
+可以通过重启网络解决一部分问题。  
+以CentOS7为例：
+```shell
+systemctl restart network
+systemctl restart docker
+```
