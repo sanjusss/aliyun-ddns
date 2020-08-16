@@ -8,11 +8,10 @@
 [![GitHub stars](https://img.shields.io/github/stars/sanjusss/aliyun-ddns.svg)](https://github.com/sanjusss/aliyun-ddns/stargazers)
 
 # 功能
-- 通过在线API获取公网IPv4地址，更新到域名A记录。
-- 通过在线API获取公网IPv6地址，更新到域名AAAA记录。
-- 通过本地网卡获取公网或内网IPv4地址，更新到域名A记录。
-- 通过本地网卡获取公网或内网IPv6地址，更新到域名AAAA记录。
+- 通过在线API获取公网IPv4/v6地址，更新到域名A/AAAA记录。
+- 通过本地网卡获取公网或内网IPv4/v6地址，更新到域名A/AAAA记录。
 - 支持更新多个域名的记录。
+- 支持更新指定线路的记录。
 - 支持Docker容器，支持x64、ARMv7和ARMv8。
 - IP发生变化时，使用WebHook通知。
 
@@ -34,7 +33,7 @@ docker run -d --restart=always --net=host \
 | :---- | :----- | :--- |
 |AKID|阿里云的Access Key ID。[获取阿里云AccessToken](https://usercenter.console.aliyun.com/)|access key id|
 |AKSCT|阿里云的Access Key Secret。|access key secret|
-|DOMAIN|需要更新的域名，多个域名需要“,”分隔。|my.domain.com|
+|DOMAIN|需要更新的域名，可以用“,”隔开。<br>可以指定线路，用“:”分隔线路和域名([线路名说明](https://help.aliyun.com/document_detail/29807.html?spm=a2c4g.11186623.2.14.42405eb4boCsnd))。<br>例如：“baidu.com,telecom:dianxin.baidu.com”。|my.domain.com|
 |REDO|更新间隔，单位秒。建议大于等于TTL/2。|300|
 |TTL|服务器缓存解析记录的时长，单位秒，普通用户最小为600。|600|
 |TIMEZONE|输出日志时的时区，单位小时。|8|
@@ -73,7 +72,7 @@ dotnet aliyun-ddns.dll \
 | :---- | :----- | :--- |
 |u|阿里云的Access Key ID。[获取阿里云AccessToken](https://usercenter.console.aliyun.com/)|access key id|
 |p|阿里云的Access Key Secret。|access key secret|
-|d|需要更新的域名，多个域名需要“,”分隔。|my.domain.com|
+|d|需要更新的域名，可以用“,”隔开。<br>可以指定线路，用“:”分隔线路和域名([线路名说明](https://help.aliyun.com/document_detail/29807.html?spm=a2c4g.11186623.2.14.42405eb4boCsnd))。<br>例如：“baidu.com,telecom:dianxin.baidu.com”。|my.domain.com|
 |i|更新间隔，单位秒。建议大于等于TTL/2。|300|
 |t|服务器缓存解析记录的时长，单位秒，普通用户最小为600。|600|
 |timezone|输出日志时的时区，单位小时。|8|

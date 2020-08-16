@@ -124,7 +124,7 @@ namespace aliyun_ddns
                     {
                         if (typedRecords.Count > 1)
                         {
-                            DeleteRecords(typedRecords[0].DomainName, typedRecords[0].RR, type);
+                            DeleteRecords(typedRecords);
                         }
 
                         success = AddRecord(j.Key, i, j.Value);
@@ -257,13 +257,15 @@ namespace aliyun_ddns
             {
                 var client = GetNewClient();
                 long pageNumber = 1;
+                ParseSubDomainAndLine(domain, out string subDomain, out string line);
                 do
                 {
                     DescribeSubDomainRecordsRequest request = new DescribeSubDomainRecordsRequest
                     {
-                        SubDomain = domain,
+                        SubDomain = subDomain,
                         PageSize = _pageSize,
-                        PageNumber = pageNumber
+                        PageNumber = pageNumber,
+                        Line = line
                     };
 
                     var response = client.GetAcsResponse(request);
@@ -288,41 +290,78 @@ namespace aliyun_ddns
             return records;
         }
 
+        ///// <summary>
+        ///// 删除所有指定类型的记录。
+        ///// </summary>
+        ///// <param name="domain">域名</param>
+        ///// <param name="rr">主机记录</param>
+        ///// <param name="type">解析记录类型</param>
+        ///// <returns>是否删除成功。</returns>
+        //private bool DeleteRecordsByType(string domain, string rr, string type)
+        //{
+        //    try
+        //    {
+        //        var client = GetNewClient();
+        //        DeleteSubDomainRecordsRequest request = new DeleteSubDomainRecordsRequest
+        //        {
+        //            DomainName = domain,
+        //            RR = rr,
+        //            Type = type,
+        //        };
+        //        var response = client.GetAcsResponse(request);
+        //        if (response.HttpResponse.isSuccess())
+        //        {
+        //            Log.Print($"成功清理{ type }记录{ rr }.{ domain }。");
+        //            return true;
+        //        }
+        //        else
+        //        {
+        //            Log.Print($"清理{ type }记录{ rr }.{ domain }失败。");
+        //            return false;
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Log.Print($"删除{ type }记录{ rr }.{ domain }记录时出现异常：{ e }");
+        //        return false;
+        //    }
+        //}
+
         /// <summary>
-        /// 删除所有指定类型的记录。
+        /// 删除所有记录。
         /// </summary>
-        /// <param name="domain">域名</param>
-        /// <param name="rr">主机记录</param>
-        /// <param name="type">解析记录类型</param>
-        /// <returns>是否删除成功。</returns>
-        private bool DeleteRecords(string domain, string rr, string type)
+        /// <param name="records">记录</param>
+        /// <returns>是否成功删除</returns>
+        private bool DeleteRecords(IEnumerable<Record> records)
         {
-            try
+            foreach (var rd in records)
             {
-                var client = GetNewClient();
-                DeleteSubDomainRecordsRequest request = new DeleteSubDomainRecordsRequest
+                try
                 {
-                    DomainName = domain,
-                    RR = rr,
-                    Type = type
-                };
-                var response = client.GetAcsResponse(request);
-                if (response.HttpResponse.isSuccess())
-                {
-                    Log.Print($"成功清理{ type }记录{ rr }.{ domain }。");
-                    return true;
+                    var client = GetNewClient();
+                    DeleteDomainRecordRequest request = new DeleteDomainRecordRequest
+                    {
+                        RecordId = rd.RecordId
+                    }; 
+                    var response = client.GetAcsResponse(request);
+                    if (response.HttpResponse.isSuccess())
+                    {
+                        Log.Print($"成功清理{ rd.Type }记录{ rd.RR }.{ rd.DomainName }({ rd.Line })记录{ rd.RecordId }。");
+                    }
+                    else
+                    {
+                        Log.Print($"清理{ rd.Type }记录{ rd.RR }.{ rd.DomainName }({ rd.Line })记录{ rd.RecordId }失败。");
+                        return false;
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    Log.Print($"清理{ type }记录{ rr }.{ domain }失败。");
+                    Log.Print($"删除{ rd.Type }记录{ rd.RR }.{ rd.DomainName }({ rd.Line })记录{ rd.RecordId }时出现异常：{ e }");
                     return false;
                 }
             }
-            catch (Exception e)
-            {
-                Log.Print($"删除{ type }记录{ rr }.{ domain }记录时出现异常：{ e }");
-                return false;
-            }
+
+            return true;
         }
 
         /// <summary>
@@ -332,25 +371,17 @@ namespace aliyun_ddns
         /// <returns>是否完全删除成功。</returns>
         private bool ClearCName(ref IList<Record> rds)
         {
-            bool found = false;
-            string domain = null;
-            string rr = null;
+            List<Record> cnameRecords = new List<Record>();
             for (int i = rds.Count - 1; i >= 0; --i)
             {
                 if (rds[i].Type == "CNAME")
                 {
-                    if (found == false)
-                    {
-                        found = true;
-                        domain = rds[i].DomainName;
-                        rr = rds[i].RR;
-                    }
-
+                    cnameRecords.Add(rds[i]);
                     rds.RemoveAt(i);
                 }
             }
 
-            return found == false || DeleteRecords(domain, rr, "CNAME");
+            return cnameRecords.Count == 0 || DeleteRecords(cnameRecords);
         }
 
         /// <summary>
@@ -364,9 +395,10 @@ namespace aliyun_ddns
         {
             try
             {
+                ParseSubDomainAndLine(domain, out string subDomain, out string line);
                 string pattern = @"^(\S*)\.(\S+)\.(\S+)$";
                 Regex regex = new Regex(pattern);
-                var match = regex.Match(domain);
+                var match = regex.Match(subDomain);
                 string domainName;
                 string rr;
                 if (match.Success)
@@ -377,7 +409,7 @@ namespace aliyun_ddns
                 else
                 {
                     rr = "@";
-                    domainName = domain;
+                    domainName = subDomain;
                 }
 
                 var client = GetNewClient();
@@ -387,7 +419,8 @@ namespace aliyun_ddns
                     RR = rr,
                     Type = type.ToString(),
                     _Value = ip,
-                    TTL = Options.Instance.TTL
+                    TTL = Options.Instance.TTL,
+                    Line = line
                 };
                 var response = client.GetAcsResponse(request);
                 if (response.HttpResponse.isSuccess())
@@ -422,7 +455,7 @@ namespace aliyun_ddns
             }
             else if (ip == rd._Value)
             {
-                Log.Print($"{ rd.Type }记录{ rd.RR }.{ rd.DomainName }不需要更新。");
+                Log.Print($"{ rd.Type }记录{ rd.RR }.{ rd.DomainName }({ rd.Line })不需要更新。");
                 return false;
             }
 
@@ -435,24 +468,47 @@ namespace aliyun_ddns
                     RR = rd.RR,
                     Type = rd.Type,
                     _Value = ip,
-                    TTL = Options.Instance.TTL
+                    TTL = Options.Instance.TTL,
+                    Line = rd.Line
                 };
                 var response = client.GetAcsResponse(request);
                 if (response.HttpResponse.isSuccess())
                 {
-                    Log.Print($"成功更新{ rd.Type }记录{ rd.RR }.{ rd.DomainName }为{ ip }。");
+                    Log.Print($"成功更新{ rd.Type }记录{ rd.RR }.{ rd.DomainName }({ rd.Line })为{ ip }。");
                     return true;
                 }
                 else
                 {
-                    Log.Print($"更新{ rd.Type }记录{ rd.RR }.{ rd.DomainName }失败。");
+                    Log.Print($"更新{ rd.Type }记录{ rd.RR }.{ rd.DomainName }({ rd.Line })失败。");
                     return false;
                 }
             }
             catch (Exception e)
             {
-                Log.Print($"更新{ rd.Type }记录{ rd.RR }.{ rd.DomainName }时出现异常：{ e }。");
+                Log.Print($"更新{ rd.Type }记录{ rd.RR }.{ rd.DomainName }({ rd.Line })时出现异常：{ e }。");
                 return false;
+            }
+        }
+
+        private static void ParseSubDomainAndLine(string domain, out string subDomain, out string line)
+        {
+            var words = domain.Split(':', StringSplitOptions.RemoveEmptyEntries);
+            if (words.Length > 2 || words.Length == 0)
+            {
+                line = "default";
+                subDomain = domain;
+                return;
+            }
+
+            if (words.Length == 2)
+            {
+                line = words[0];
+                subDomain = words[1];
+            }
+            else
+            {
+                line = "default";
+                subDomain = words[0];
             }
         }
     }

@@ -14,7 +14,7 @@ namespace aliyun_ddns
         //[Option('e', "endpoint", Required = false, Default = "cn-hangzhou", HelpText = "Region Id，详见https://help.aliyun.com/document_detail/40654.html?spm=a2c4e.11153987.0.0.6d85366aUfTWbG")]
         //public string ENDPOINT { get; set; } = "cn-hangzhou";
 
-        [Option('d', "domain", Required = false, Default = "my.domain.com", HelpText = "需要更新的域名，可以用“,”隔开。")]
+        [Option('d', "domain", Required = false, Default = "my.domain.com", HelpText = "需要更新的域名，可以用“,”隔开。可以指定线路，用“:”分隔线路和域名(线路名说明见https://help.aliyun.com/document_detail/29807.html?spm=a2c4g.11186623.2.14.42405eb4boCsnd)。例如：“baidu.com,telecom:dianxin.baidu.com”。")]
         public string Domain { get; set; } = "my.domain.com";
 
         [Option('i', "interval", Required = false, Default = 300, HelpText = "执行域名更新的间隔，单位秒。")]
