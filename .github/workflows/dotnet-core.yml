@@ -7,14 +7,16 @@ on:
     paths:
       - "**"
       - "!**.MD"
+      - "!**.md"
       - "!LICENSE"
       - "!.gitignore"
-      - "!.github/workflows**"
+      - "!.github/workflows/**"
   pull_request:
     branches: [ master ]
     paths:
       - "**"
       - "!**.MD"
+      - "!**.md"
       - "!LICENSE"
       - "!.gitignore"
 
