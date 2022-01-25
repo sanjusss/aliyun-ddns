@@ -19,11 +19,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="aliyun-net-sdk-alidns" Version="2.0.18" />
+    <PackageReference Include="aliyun-net-sdk-alidns" Version="2.6.32" />
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    <PackageReference Include="IPNetwork2" Version="2.5.211" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="IPNetwork2" Version="2.5.386" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
 </Project>

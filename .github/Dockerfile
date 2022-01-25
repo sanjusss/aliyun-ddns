@@ -1,5 +1,5 @@
 
-FROM mcr.microsoft.com/dotnet/core/runtime:6.0 AS final
+FROM mcr.microsoft.com/dotnet/runtime:6.0 AS final
 LABEL maintainer="sanjusss@qq.com"
 ENV AKID="access key id"
 ENV AKSCT="access key secret"

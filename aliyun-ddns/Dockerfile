@@ -4,7 +4,7 @@ WORKDIR /src
 COPY . /src
 RUN dotnet publish -c Release -o /app /src/aliyun-ddns/
 
-FROM mcr.microsoft.com/dotnet/core/runtime:6.0 AS final
+FROM mcr.microsoft.com/dotnet/runtime:6.0 AS final
 MAINTAINER sanjusss <sanjusss@qq.com>
 WORKDIR /app
 COPY --from=build /app .
