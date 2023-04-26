@@ -3,6 +3,7 @@ using Aliyun.Acs.Core;
 using Aliyun.Acs.Core.Profile;
 using aliyun_ddns.Common;
 using aliyun_ddns.WebHook;
+using aliyun_ddns.ServerChan;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -145,6 +146,7 @@ namespace aliyun_ddns
             if (items.Count > 0)
             {
                 WebHookAction.Push(items);
+                ServerChanAction.Push(items);
             }
         }
 

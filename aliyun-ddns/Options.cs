@@ -35,6 +35,9 @@ namespace aliyun_ddns
         [Option('h',"webhook", Required = false, Default = null, HelpText = "WEB HOOK推送地址。")]
         public string WebHook { get; set; } = null;
 
+        [Option('k',"sendKey", Required = false, Default = null, HelpText = "Server酱SendKey。")]
+        public string SendKey { get; set; } = null;
+
         [Option('c', "checklocal", Required = false, Default = false, HelpText = "是否检查本地网卡IP。此选项将禁用在线API的IP检查。")]
         public bool CheckLocalNetworkAdaptor { get; set; } = false;
 
@@ -80,6 +83,7 @@ namespace aliyun_ddns
             Domain = GetEnvironmentVariable("DOMAIN") ?? Domain;
             Type = GetEnvironmentVariable("TYPE") ?? Type;
             WebHook = GetEnvironmentVariable("WEBHOOK") ?? WebHook;
+            SendKey = GetEnvironmentVariable("SENDKEY") ?? SendKey;
             IPv4Networks = GetEnvironmentVariable("IPV4NETS") ?? IPv4Networks;
             IPv6Networks = GetEnvironmentVariable("IPV6NETS") ?? IPv6Networks;
 
