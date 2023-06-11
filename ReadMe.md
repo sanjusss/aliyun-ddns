@@ -34,6 +34,7 @@ docker run -d --restart=always --net=host \
 |AKID|阿里云的Access Key ID。[获取阿里云AccessToken](https://usercenter.console.aliyun.com/)|access key id|
 |AKSCT|阿里云的Access Key Secret。|access key secret|
 |DOMAIN|需要更新的域名，可以用“,”隔开。<br>可以指定线路，用“:”分隔线路和域名([线路名说明](https://help.aliyun.com/document_detail/29807.html?spm=a2c4g.11186623.2.14.42405eb4boCsnd))。<br>例如：“baidu.com,telecom:dianxin.baidu.com”。|my.domain.com|
+|ROOT_DOMAIN|以参数DOMAIN为 a.www.example.com 为示例：<br>1.如果参数ROOT_DOMAIN为空，则查询域名为example.com、主机名为”a.www“的解析记录；<br>2.如果参数ROOT_DOMAIN为 www.example.com，则查询域名为www.example.com、主机名为 "a"的解析记录；<br>3.如果参数ROOT_DOMAIN为 a.www.example.com，则查询域名为a.www.example.com、主机名为 "@"的解析记录。|无|
 |REDO|更新间隔，单位秒。建议大于等于TTL/2。|300|
 |TTL|服务器缓存解析记录的时长，单位秒，普通用户最小为600。|600|
 |TIMEZONE|输出日志时的时区，单位小时。|8|
@@ -73,6 +74,7 @@ dotnet aliyun-ddns.dll \
 |u|阿里云的Access Key ID。[获取阿里云AccessToken](https://usercenter.console.aliyun.com/)|access key id|
 |p|阿里云的Access Key Secret。|access key secret|
 |d|需要更新的域名，可以用“,”隔开。<br>可以指定线路，用“:”分隔线路和域名([线路名说明](https://help.aliyun.com/document_detail/29807.html?spm=a2c4g.11186623.2.14.42405eb4boCsnd))。<br>例如：“baidu.com,telecom:dianxin.baidu.com”。|my.domain.com|
+|root-domain|以参数DOMAIN为 a.www.example.com 为示例：<br>1.如果参数ROOT_DOMAIN为空，则查询域名为example.com、主机名为”a.www“的解析记录；<br>2.如果参数ROOT_DOMAIN为 www.example.com，则查询域名为www.example.com、主机名为 "a"的解析记录；<br>3.如果参数ROOT_DOMAIN为 a.www.example.com，则查询域名为a.www.example.com、主机名为 "@"的解析记录。|无|
 |i|更新间隔，单位秒。建议大于等于TTL/2。|300|
 |t|服务器缓存解析记录的时长，单位秒，普通用户最小为600。|600|
 |timezone|输出日志时的时区，单位小时。|8|

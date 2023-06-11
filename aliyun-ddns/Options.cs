@@ -17,6 +17,9 @@ namespace aliyun_ddns
         [Option('d', "domain", Required = false, Default = "my.domain.com", HelpText = "需要更新的域名，可以用“,”隔开。可以指定线路，用“:”分隔线路和域名(线路名说明见https://help.aliyun.com/document_detail/29807.html?spm=a2c4g.11186623.2.14.42405eb4boCsnd)。例如：“baidu.com,telecom:dianxin.baidu.com”。")]
         public string Domain { get; set; } = "my.domain.com";
 
+        [Option("root-domain", Required = false, Default = null, HelpText = "需要更新的主域名")]
+        public string RootDomain { get; set; } = null;
+
         [Option('i', "interval", Required = false, Default = 300, HelpText = "执行域名更新的间隔，单位秒。")]
         public int Redo { get; set; } = 300;
 
@@ -47,7 +50,7 @@ namespace aliyun_ddns
         private static Options _instance = null;
         private static object _instanceLocker = new object();
 
-        public static Options Instance 
+        public static Options Instance
         {
             get
             {
@@ -77,6 +80,7 @@ namespace aliyun_ddns
             Akid = GetEnvironmentVariable("AKID") ?? Akid;
             Aksct = GetEnvironmentVariable("AKSCT") ?? Aksct;
             //ENDPOINT = GetEnvironmentVariable("ENDPOINT") ?? ENDPOINT;
+            RootDomain = GetEnvironmentVariable("ROOT_DOMAIN") ?? RootDomain;
             Domain = GetEnvironmentVariable("DOMAIN") ?? Domain;
             Type = GetEnvironmentVariable("TYPE") ?? Type;
             WebHook = GetEnvironmentVariable("WEBHOOK") ?? WebHook;

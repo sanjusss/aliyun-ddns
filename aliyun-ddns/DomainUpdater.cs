@@ -262,6 +262,7 @@ namespace aliyun_ddns
                 {
                     DescribeSubDomainRecordsRequest request = new DescribeSubDomainRecordsRequest
                     {
+                        DomainName = Options.Instance.RootDomain,
                         SubDomain = subDomain,
                         PageSize = _pageSize,
                         PageNumber = pageNumber,
@@ -342,7 +343,7 @@ namespace aliyun_ddns
                     DeleteDomainRecordRequest request = new DeleteDomainRecordRequest
                     {
                         RecordId = rd.RecordId
-                    }; 
+                    };
                     var response = client.GetAcsResponse(request);
                     if (response.HttpResponse.isSuccess())
                     {
@@ -395,21 +396,42 @@ namespace aliyun_ddns
         {
             try
             {
-                ParseSubDomainAndLine(domain, out string subDomain, out string line);
-                string pattern = @"^(\S*)\.(\S+)\.(\S+)$";
-                Regex regex = new Regex(pattern);
-                var match = regex.Match(subDomain);
                 string domainName;
                 string rr;
-                if (match.Success)
+
+                ParseSubDomainAndLine(domain, out string subDomain, out string line);
+                if (Options.Instance.RootDomain == null)
                 {
-                    rr = match.Groups[1].Value;
-                    domainName = match.Groups[2].Value + "." + match.Groups[3].Value;
+                    string pattern = @"^(\S*)\.(\S+)\.(\S+)$";
+                    Regex regex = new Regex(pattern);
+                    var match = regex.Match(subDomain);
+                    if (match.Success)
+                    {
+                        rr = match.Groups[1].Value;
+                        domainName = match.Groups[2].Value + "." + match.Groups[3].Value;
+                    }
+                    else
+                    {
+                        rr = "@";
+                        domainName = subDomain;
+                    }
                 }
                 else
                 {
-                    rr = "@";
-                    domainName = subDomain;
+                    if (subDomain == Options.Instance.RootDomain)
+                    {
+                        rr = "@";
+                        domainName = subDomain;
+                    }
+                    else if (subDomain.EndsWith($".{ Options.Instance.RootDomain }"))
+                    {
+                        rr = subDomain.Substring(0, subDomain.Length - $".{ Options.Instance.RootDomain }".Length);
+                        domainName = Options.Instance.RootDomain;
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"DOMAIN(“{ subDomain }“)必须以ROOTDOMAIN(“.{ Options.Instance.RootDomain }“)结尾");
+                    }
                 }
 
                 var client = GetNewClient();
