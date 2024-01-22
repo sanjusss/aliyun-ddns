@@ -13,12 +13,12 @@
 - 支持更新多个域名的记录。
 - 支持更新指定线路的记录。
 - 支持Docker容器，支持x64、ARMv7和ARMv8。
-- IP发生变化时，使用WebHook通知。
+- IP发生变化时，使用WebHook或者Server酱通知。
 
 # 使用方法
 
 ### Docker
-```
+```shell
 docker run -d --restart=always --net=host \
     -e "AKID=[ALIYUN's AccessKey-ID]" \
     -e "AKSCT=[ALIYUN's AccessKey-Secret]" \
@@ -28,6 +28,44 @@ docker run -d --restart=always --net=host \
     -e "TIMEZONE=8.0" \
     -e "TYPE=A,AAAA" \
     sanjusss/aliyun-ddns
+```
+docker-compose
+```yaml
+version: '2.17.3'
+services:
+    # 阿里云DDNS服务
+    ddns: 
+        image: sanjusss/aliyun-ddns
+        container_name: ddns
+        restart: always
+        environment:
+            # 时区
+            - TZ=Asia/Shanghai
+            # 阿里云的Access Key ID
+            - AKID=Access Key ID
+            # 阿里云的Access Key Secret
+            - AKSCT=Access Key Secret
+            # 需要更新的域名，可以用“,”隔开
+            - DOMAIN=ddns.aliyun.win
+            # 更新间隔，单位秒。建议大于等于TTL/2
+            #- REDO=
+            # 服务器缓存解析记录的时长，单位秒，普通用户最小为600
+            # - TTL= 600
+            # 输出日志时的时区，单位小时
+            # - TIMEZONE=
+            # 需要更改的记录类型，可以用“,”隔开，只能是“A”、“AAAA”或“A,AAAA”
+            - TYPE=A,AAAA
+            # 检查IPv4地址时，仅使用中国服务器
+            # - CNIPV4=
+            # WEBHOOK推送地址
+            # - WEBHOOK=
+            # 是否检查本地网卡IP。此选项将禁用在线API的IP检查。
+            # 网络模式必须设置为host
+            # - CHECKLOCAL=true
+            # Server酱SendKey参数
+            # - SENDKEY=
+        network_mode: "host"
+        privileged: true
 ```
 | 环境变量名称 | 注释 | 默认值 |
 | :---- | :----- | :--- |
@@ -41,6 +79,7 @@ docker run -d --restart=always --net=host \
 |TYPE|需要更改的记录类型，可以用“,”隔开，只能是“A”、“AAAA”或“A,AAAA”。|A,AAAA|
 |CNIPV4|检查IPv4地址时，仅使用中国服务器。|false|
 |WEBHOOK|WEBHOOK推送地址。|无|
+|SENDKEY|Server酱SendKey。|无|
 |CHECKLOCAL|是否检查本地网卡IP。此选项将禁用在线API的IP检查。<br>网络模式必须设置为host。<br>(Windows版docker无法读取本机IP)|false|
 |IPV4NETS|本地网卡的IPv4网段。格式示例：“192.168.1.0/24”。多个网段用“,”隔开。|无|
 |IPV6NETS|本地网卡的IPv6网段。格式示例：“240e::/16”。多个网段用“,”隔开。|无|
@@ -81,6 +120,7 @@ dotnet aliyun-ddns.dll \
 |type|需要更改的记录类型，可以用“,”隔开，只能是“A”、“AAAA”或“A,AAAA”。|A,AAAA|
 |cnipv4|检查IPv4地址时，仅使用中国服务器。|false|
 |webhook|WEBHOOK推送地址。|无|
+|sendKey|Server酱SendKey。|无|
 |checklocal|是否检查本地网卡IP。此选项将禁用在线API的IP检查。|false|
 |ipv4nets|本地网卡的IPv4网段。格式示例：“192.168.1.0/24”。多个网段用“,”隔开。|无|
 |ipv6nets|本地网卡的IPv6网段。格式示例：“240e::/16”。多个网段用“,”隔开。|无|
