@@ -1,4 +1,4 @@
-﻿﻿
+﻿
 [![.NET Core](https://github.com/sanjusss/aliyun-ddns/actions/workflows/dotnet-core.yml/badge.svg?branch=master)](https://github.com/sanjusss/aliyun-ddns/actions/workflows/dotnet-core.yml)
 [![](https://img.shields.io/docker/stars/sanjusss/aliyun-ddns.svg?logo=docker)](https://hub.docker.com/r/sanjusss/aliyun-ddns)
 [![GitHub license](https://img.shields.io/github/license/sanjusss/aliyun-ddns.svg)](https://github.com/sanjusss/aliyun-ddns/blob/master/LICENSE)  
@@ -91,7 +91,7 @@ dotnet aliyun-ddns.dll \
 
 ### 无法获取DNS记录
 #### 日志提示
-获取xxx.yyy.zzz的所有记录时出现异常：Aliyun.Acs.Core.Exceptions.ClientException: SDK.WebException : HttpWebRequest WebException occured, the request url is alidns.aliyuncs.com System.Net.WebException: Resource temporarily unavailable Resource temporarily unavailable  
+获取xxx.yyy.zzz的所有记录时出现异常：Aliyun.Acs.Core.Exceptions.ClientException: SDK.WebException : HttpWebRequest WebException occurred, the request url is alidns.aliyuncs.com System.Net.WebException: Resource temporarily unavailable Resource temporarily unavailable  
 #### 可能的原因
 - alidns.aliyuncs.com服务器宕机
 - 当地电信运营商网络故障
