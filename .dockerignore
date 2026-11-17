@@ -1,0 +1,17 @@
+.git
+.gitignore
+.github
+.vs
+.vscode
+**/bin
+**/obj
+artifacts
+scratch
+tests
+.env
+*.user
+*.suo
+appsettings.local.json
+secrets
+Dockerfile
+.dockerignore

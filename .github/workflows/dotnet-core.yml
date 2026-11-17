@@ -1,155 +1,155 @@
-name: .NET Core
+name: Build, test and release
 
 on:
   workflow_dispatch:
+    inputs:
+      publish_latest:
+        description: 在合法版本标签上同时更新 latest（仅用于明确发布最新稳定版）
+        type: boolean
+        default: false
   push:
-    branches: [ master ]
-    tags: '*'
-    paths:
-      - "**"
-      - "!**.MD"
-      - "!**.md"
-      - "!LICENSE"
-      - "!.gitignore"
-      - "!.github/workflows/**"
+    branches: [master]
+    tags: ['*']
   pull_request:
-    branches: [ master ]
-    paths:
-      - "**"
-      - "!**.MD"
-      - "!**.md"
-      - "!LICENSE"
-      - "!.gitignore"
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aliyun-ddns-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '6.0.x'
-    - name: Install dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-    - name: Publish
-      run: dotnet publish --configuration Release --no-build --output ./.github/out
-    - name: Delete extra files
-      run: rm -f ./.github/out/aliyun-ddns ./.github/out/aliyun-ddns.pdb
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        path: ./.github/out
-    
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v1
-    - name: Set up Docker Buildx
-      id: buildx
-      uses: docker/setup-buildx-action@v1
-    - name: Available platforms
-      run: echo ${{ steps.buildx.outputs.platforms }}
-      
-    - name: Prepare
-      id: prepare
-      run: |
-        echo ::set-output name=docker_platforms::linux/amd64,linux/arm/v7,linux/arm64
-        echo ::set-output name=docker_image::${{ secrets.DOCKER_HUB_USER }}/aliyun-ddns
-        
-    - name: Docker Buildx (no push)
-      run: |
-        docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64 \
-          --output "type=image,push=false" \
-          --file ./.github/Dockerfile ./.github
-           
-    - name: Docker Hub Login
-      if: success() && !startsWith(github.event_name, 'pull_request')
-      run: |
-        docker login --username "${{ secrets.DOCKER_HUB_USER }}" -p ${{ secrets.DOCKER_HUB_PASS }}
-        
-    - name: Docker Buildx (push)
-      if: success() && !startsWith(github.event_name, 'pull_request')
-      run: |
-        docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
-          --push \
-          --tag "${{ steps.prepare.outputs.docker_image }}:latest" \
-          --file ./.github/Dockerfile ./.github
-        docker buildx build --platform linux/amd64 \
-          --push \
-          --tag "${{ steps.prepare.outputs.docker_image }}:linux-amd64" \
-          --file ./.github/Dockerfile ./.github
-        docker buildx build --platform linux/arm64 \
-          --push \
-          --tag "${{ steps.prepare.outputs.docker_image }}:linux-arm64v8" \
-          --file ./.github/Dockerfile ./.github
-        docker buildx build --platform linux/arm/v7 \
-          --push \
-          --tag "${{ steps.prepare.outputs.docker_image }}:linux-arm32v7" \
-          --file ./.github/Dockerfile ./.github
-        
-    - name: Docker Buildx (push on tags)
-      if: success() && startsWith(github.ref, 'refs/tags')
-      run: |
-        docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
-          --push \
-          --tag "${{ steps.prepare.outputs.docker_image }}:${GITHUB_REF#refs/tags/}" \
-          --file ./.github/Dockerfile ./.github
-        docker buildx build --platform linux/amd64 \
-          --push \
-          --tag "${{ steps.prepare.outputs.docker_image }}:${GITHUB_REF#refs/tags/}-linux-amd64" \
-          --file ./.github/Dockerfile ./.github
-        docker buildx build --platform linux/arm64 \
-          --push \
-          --tag "${{ steps.prepare.outputs.docker_image }}:${GITHUB_REF#refs/tags/}-linux-arm64v8" \
-          --file ./.github/Dockerfile ./.github
-        docker buildx build --platform linux/arm/v7 \
-          --push \
-          --tag "${{ steps.prepare.outputs.docker_image }}:${GITHUB_REF#refs/tags/}-linux-arm32v7" \
-          --file ./.github/Dockerfile ./.github
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore locked dependencies
+        run: dotnet restore aliyun-ddns.sln --locked-mode
+      - name: Verify formatting
+        run: dotnet format aliyun-ddns.sln --verify-no-changes --no-restore
+      - name: Build
+        run: dotnet build aliyun-ddns.sln --configuration Release --no-restore
+      - name: Test
+        run: dotnet test aliyun-ddns.sln --configuration Release --no-build --no-restore
+      - name: Check vulnerable dependencies
+        run: dotnet list aliyun-ddns.sln package --vulnerable --include-transitive
+      - name: Publish and verify version
+        run: |
+          dotnet publish src/AliyunDdns/AliyunDdns.csproj --configuration Release --no-build --output artifacts/package
+          expected=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props | head -1)
+          actual=$(dotnet artifacts/package/aliyun-ddns.dll --version)
+          test "$actual" = "$expected"
+          test -f artifacts/package/LICENSE
+      - name: Upload build artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: aliyun-ddns-build
+          path: artifacts/package
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build single-architecture image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: aliyun-ddns:ci
+      - name: Check image startup, license and user
+        run: |
+          docker run --rm aliyun-ddns:ci --help >/dev/null
+          docker run --rm aliyun-ddns:ci --version
+          docker run --rm --entrypoint test aliyun-ddns:ci -f /app/LICENSE
+          test "$(docker image inspect --format '{{.Config.User}}' aliyun-ddns:ci)" = "1654"
 
-    - name: Docker Check Manifest
-      if: success() && !startsWith(github.event_name, 'pull_request')
-      run: |
-        docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:latest
-
-    - name: Clear
-      if: always() && !startsWith(github.event_name, 'pull_request')
-      run: |
-        rm -f ${HOME}/.docker/config.json
-        
-    - name: Prepare
-      if: success() && startsWith(github.ref, 'refs/tags')
-      id: zipname
-      run: |
-        echo ::set-output name=zip_name::aliyun-ddns-${GITHUB_REF#refs/tags/}.zip
-        echo ::set-output name=version::${GITHUB_REF#refs/tags/}
-    - name: Create zip
-      if: success() && startsWith(github.ref, 'refs/tags')
-      run: |
-        zip --junk-paths -q -r ${{ steps.zipname.outputs.zip_name }} ./.github/out/*
-          
-    - name: Create Release
-      if: success() && startsWith(github.ref, 'refs/tags')
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ steps.zipname.outputs.version }}
-        release_name: ${{ steps.zipname.outputs.version }}
-        draft: false
-        prerelease: false
-    - name: Upload Release Asset
-      if: success() && startsWith(github.ref, 'refs/tags')
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./${{ steps.zipname.outputs.zip_name }}
-        asset_name: ${{ steps.zipname.outputs.zip_name }}
-        asset_content_type: application/zip
+  publish:
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: aliyun-ddns-release
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Calculate version and image tags
+        id: meta
+        env:
+          DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
+          PUBLISH_LATEST: ${{ inputs.publish_latest }}
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            version=${GITHUB_REF#refs/tags/}
+            [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+            tags_version_only=true
+          else
+            [[ "$GITHUB_REF" == "refs/heads/master" ]]
+            version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props | head -1)
+            tags_version_only=false
+          fi
+          image=${DOCKER_HUB_USER:?DOCKER_HUB_USER is required}/aliyun-ddns
+          if [[ "$tags_version_only" == true ]]; then
+            tags="$image:$version"
+            if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" && "$PUBLISH_LATEST" == "true" ]]; then
+              tags="$tags,$image:latest"
+            fi
+          else
+            tags="$image:latest"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tags=$tags" >> "$GITHUB_OUTPUT"
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Log in to Docker Hub
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          username: ${{ secrets.DOCKER_HUB_USER }}
+          password: ${{ secrets.DOCKER_HUB_PASS }}
+      - name: Build and push multi-architecture image with SBOM
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: VERSION=${{ steps.meta.outputs.version }}
+          sbom: true
+          provenance: mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Create versioned ZIP and checksum
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          dotnet restore src/AliyunDdns/AliyunDdns.csproj --locked-mode
+          dotnet publish src/AliyunDdns/AliyunDdns.csproj --configuration Release --output artifacts/package \
+            /p:Version=${{ steps.meta.outputs.version }}
+          actual=$(dotnet artifacts/package/aliyun-ddns.dll --version)
+          test "$actual" = "${{ steps.meta.outputs.version }}"
+          test -f artifacts/package/LICENSE
+          (cd artifacts/package && zip -q -r "../aliyun-ddns-${{ steps.meta.outputs.version }}.zip" .)
+          (cd artifacts && sha256sum "aliyun-ddns-${{ steps.meta.outputs.version }}.zip" > "aliyun-ddns-${{ steps.meta.outputs.version }}.zip.sha256")
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.meta.outputs.version }}" \
+            "artifacts/aliyun-ddns-${{ steps.meta.outputs.version }}.zip" \
+            "artifacts/aliyun-ddns-${{ steps.meta.outputs.version }}.zip.sha256" \
+            --generate-notes

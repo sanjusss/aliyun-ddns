@@ -1,0 +1,48 @@
+{
+  "Updater": {
+    "IntervalSeconds": 300,
+    "DryRun": false,
+    "ConflictPolicy": "Replace",
+    "RequestTimeoutSeconds": 10,
+    "RetryMaxAttempts": 3,
+    "RetryBaseDelayMilliseconds": 500,
+    "LogTimeZoneOffsetHours": 8,
+    "ChinaIPv4Only": false
+  },
+  "Aliyun": {
+    "Endpoint": "alidns.aliyuncs.com",
+    "AccessKeyId": "请替换为 RAM 用户的 AccessKey ID",
+    "AccessKeySecret": "",
+    "AccessKeySecretFile": "/run/secrets/aliyun_access_key_secret"
+  },
+  "Webhook": {
+    "Url": "",
+    "TimeoutSeconds": 10
+  },
+  "Targets": [
+    {
+      "Domain": "home.example.com",
+      "RootDomain": "example.com",
+      "Types": [ "A", "AAAA" ],
+      "Line": "default",
+      "Ttl": 600,
+      "Source": "Public",
+      "Interface": "",
+      "Networks": [],
+      "AllowAnyInterface": false,
+      "AddressPolicy": "Stable"
+    },
+    {
+      "Domain": "nas.example.com",
+      "RootDomain": "example.com",
+      "Types": [ "AAAA" ],
+      "Line": "default",
+      "Ttl": 600,
+      "Source": "Local",
+      "Interface": "eth0",
+      "Networks": [ "240e::/16" ],
+      "AllowAnyInterface": false,
+      "AddressPolicy": "Eui64"
+    }
+  ]
+}

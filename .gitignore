@@ -261,3 +261,10 @@ __pycache__/
 *.pyc
 /aliyun-ddns/Properties/launchSettings.json
 /docker-compose.override.yml
+
+# 本地配置、凭证和发布输出
+.env
+appsettings.local.json
+secrets/
+artifacts/
+scratch/
