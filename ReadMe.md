@@ -187,6 +187,19 @@ docker pull ghcr.io/sanjusss/aliyun-ddns:latest
 docker build -t aliyun-ddns:local .
 ```
 
+Alpine 版本使用 musl libc，镜像体积更小，标签带 `-alpine` 后缀：
+
+```bash
+docker pull sanjusss/aliyun-ddns:latest-alpine
+docker pull ghcr.io/sanjusss/aliyun-ddns:latest-alpine
+```
+
+从仓库根目录构建 Alpine 版本：
+
+```bash
+docker build -f Dockerfile.alpine -t aliyun-ddns:local-alpine .
+```
+
 公网 IP 模式：
 
 ```bash

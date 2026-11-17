@@ -68,6 +68,21 @@ jobs:
           docker run --rm aliyun-ddns:ci --version
           docker run --rm --entrypoint test aliyun-ddns:ci -f /app/LICENSE
           test "$(docker image inspect --format '{{.Config.User}}' aliyun-ddns:ci)" = "1654"
+      - name: Build single-architecture Alpine image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: Dockerfile.alpine
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: aliyun-ddns:ci-alpine
+      - name: Check Alpine image startup, license and user
+        run: |
+          docker run --rm aliyun-ddns:ci-alpine --help >/dev/null
+          docker run --rm aliyun-ddns:ci-alpine --version
+          docker run --rm --entrypoint test aliyun-ddns:ci-alpine -f /app/LICENSE
+          test "$(docker image inspect --format '{{.Config.User}}' aliyun-ddns:ci-alpine)" = "1654"
 
   publish:
     if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))
@@ -106,14 +121,18 @@ jobs:
           ghcr_image="ghcr.io/${GITHUB_REPOSITORY,,}"
           if [[ "$tags_version_only" == true ]]; then
             tags="$image:$version,$ghcr_image:$version"
+            tags_alpine="$image:$version-alpine,$ghcr_image:$version-alpine"
             if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" && "$PUBLISH_LATEST" == "true" ]]; then
               tags="$tags,$image:latest,$ghcr_image:latest"
+              tags_alpine="$tags_alpine,$image:latest-alpine,$ghcr_image:latest-alpine"
             fi
           else
             tags="$image:latest,$ghcr_image:latest"
+            tags_alpine="$image:latest-alpine,$ghcr_image:latest-alpine"
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tags=$tags" >> "$GITHUB_OUTPUT"
+          echo "tags_alpine=$tags_alpine" >> "$GITHUB_OUTPUT"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
       - name: Set up Docker Buildx
@@ -139,8 +158,21 @@ jobs:
           build-args: VERSION=${{ steps.meta.outputs.version }}
           sbom: true
           provenance: mode=max
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=default
+          cache-to: type=gha,mode=max,scope=default
+      - name: Build and push multi-architecture Alpine image with SBOM
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: Dockerfile.alpine
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
+          tags: ${{ steps.meta.outputs.tags_alpine }}
+          build-args: VERSION=${{ steps.meta.outputs.version }}
+          sbom: true
+          provenance: mode=max
+          cache-from: type=gha,scope=alpine
+          cache-to: type=gha,mode=max,scope=alpine
       - name: Create versioned ZIP and checksum
         if: startsWith(github.ref, 'refs/tags/')
         run: |
