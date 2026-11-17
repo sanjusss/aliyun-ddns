@@ -26,6 +26,24 @@ public sealed class RepositoryPolicyTests
     }
 
     [Fact]
+    public void PublishWorkflow_PushesDockerHubAndGhcr()
+    {
+        var workflow = ReadRepositoryFile(".github/workflows/dotnet-core.yml");
+        Assert.Contains("packages: write", workflow, StringComparison.Ordinal);
+        Assert.Contains("registry: ghcr.io", workflow, StringComparison.Ordinal);
+        Assert.Contains("ghcr_image=\"ghcr.io/${GITHUB_REPOSITORY,,}\"", workflow, StringComparison.Ordinal);
+        Assert.Contains("password: ${{ secrets.GITHUB_TOKEN }}", workflow, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Docker_ImageContainsRepositoryMetadata()
+    {
+        var dockerfile = ReadRepositoryFile("Dockerfile");
+        Assert.Contains("org.opencontainers.image.source=\"https://github.com/sanjusss/aliyun-ddns\"", dockerfile, StringComparison.Ordinal);
+        Assert.Contains("org.opencontainers.image.licenses=\"BSD-3-Clause\"", dockerfile, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Docker_SdkRunsOnNativeBuildPlatform()
     {
         var dockerfile = ReadRepositoryFile("Dockerfile");
