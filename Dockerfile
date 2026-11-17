@@ -5,14 +5,12 @@ WORKDIR /src
 
 COPY global.json Directory.Build.props ./
 COPY src/AliyunDdns/AliyunDdns.csproj src/AliyunDdns/packages.lock.json src/AliyunDdns/
-RUN --mount=type=cache,id=aliyun-ddns-nuget,target=/root/.nuget/packages,sharing=locked \
-    dotnet restore src/AliyunDdns/AliyunDdns.csproj --locked-mode -p:NuGetAudit=false
+RUN dotnet restore src/AliyunDdns/AliyunDdns.csproj --locked-mode -p:NuGetAudit=false
 
 COPY src/AliyunDdns/ src/AliyunDdns/
 COPY LICENSE ./LICENSE
 ARG VERSION=0.3.0
-RUN --mount=type=cache,id=aliyun-ddns-nuget,target=/root/.nuget/packages,sharing=locked \
-    dotnet publish src/AliyunDdns/AliyunDdns.csproj \
+RUN dotnet publish src/AliyunDdns/AliyunDdns.csproj \
     --configuration Release \
     --output /app/publish \
     --no-restore \
