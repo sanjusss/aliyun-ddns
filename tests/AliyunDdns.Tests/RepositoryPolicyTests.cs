@@ -26,6 +26,13 @@ public sealed class RepositoryPolicyTests
     }
 
     [Fact]
+    public void Docker_SdkRunsOnNativeBuildPlatform()
+    {
+        var dockerfile = ReadRepositoryFile("Dockerfile");
+        Assert.Contains("FROM --platform=$BUILDPLATFORM ", dockerfile, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Docker_BaseImagesArePinnedAndAutomaticallyUpdated()
     {
         var fromLines = ReadRepositoryFile("Dockerfile").Split('\n')
