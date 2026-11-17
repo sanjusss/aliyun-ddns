@@ -43,6 +43,50 @@ public sealed class PublicIpAddressProviderTests
     }
 
     [Fact]
+    public async Task NestedJsonProperty_IsParsed()
+    {
+        var source = Source("nested") with
+        {
+            Format = IpSourceFormat.JsonProperty,
+            JsonPropertyName = "data.ip"
+        };
+        var handler = new FakeHttpMessageHandler((_, _) => Task.FromResult(
+            HttpResponses.Text("{\"ret\":\"ok\",\"data\":{\"ip\":\"8.8.4.4\"}}")));
+        Assert.Equal(IPAddress.Parse("8.8.4.4"), await Provider(handler, source).GetAddressAsync(TestData.Target(), DnsRecordType.A, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task TextExtraction_FindsAddressAfterPrefix()
+    {
+        var source = Source("oray") with { Format = IpSourceFormat.TextExtraction };
+        var handler = new FakeHttpMessageHandler((_, _) => Task.FromResult(
+            HttpResponses.Text("Current IP Address: 8.8.8.8")));
+        Assert.Equal(IPAddress.Parse("8.8.8.8"), await Provider(handler, source).GetAddressAsync(TestData.Target(), DnsRecordType.A, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task TextExtraction_FindsAddressInChineseText()
+    {
+        var source = Source("ipip") with { Format = IpSourceFormat.TextExtraction };
+        var handler = new FakeHttpMessageHandler((_, _) => Task.FromResult(
+            HttpResponses.Text("当前 IP：8.8.8.8 来自于：中国 江苏 无锡 移动")));
+        Assert.Equal(IPAddress.Parse("8.8.8.8"), await Provider(handler, source).GetAddressAsync(TestData.Target(), DnsRecordType.A, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task TextExtraction_SelectsExpectedFamily()
+    {
+        var source = Source("text") with
+        {
+            Type = DnsRecordType.AAAA,
+            Format = IpSourceFormat.TextExtraction
+        };
+        var handler = new FakeHttpMessageHandler((_, _) => Task.FromResult(
+            HttpResponses.Text("IPv4: 8.8.8.8 IPv6: 2001:4860:4860::8888")));
+        Assert.Equal(IPAddress.Parse("2001:4860:4860::8888"), await Provider(handler, source).GetAddressAsync(TestData.Target(), DnsRecordType.AAAA, CancellationToken.None));
+    }
+
+    [Fact]
     public async Task OversizedResponse_ReturnsNull()
     {
         var handler = new FakeHttpMessageHandler((_, _) => Task.FromResult(HttpResponses.Text(new string('1', 1100))));

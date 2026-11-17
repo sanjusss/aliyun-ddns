@@ -1,7 +1,7 @@
 using System.Net;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using AliyunDdns.Application;
 using AliyunDdns.Configuration;
 using AliyunDdns.Domain;
@@ -11,6 +11,14 @@ namespace AliyunDdns.Infrastructure.Ip;
 
 public sealed class PublicIpAddressProvider : IIpAddressProvider
 {
+    private static readonly Regex IPv4AddressPattern = new(
+        @"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    private static readonly Regex IPv6AddressPattern = new(
+        @"(?<![0-9A-Fa-f:])[0-9A-Fa-f:]{2,}(?![0-9A-Fa-f:])",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
     private const int MaximumResponseBytes = 1024;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IpSourceCatalog _catalog;
@@ -48,7 +56,7 @@ public sealed class PublicIpAddressProvider : IIpAddressProvider
                     .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token);
                 response.EnsureSuccessStatusCode();
                 var content = await ReadLimitedContentAsync(response, timeout.Token);
-                var text = ParseContent(source, content);
+                var text = ParseContent(source, content, type);
                 if (IpAddressValidator.TryParsePublic(text, type, out var address))
                 {
                     _logger.LogInformation("公网 IP 来源 {SourceName} 返回有效 {RecordType} 地址。", source.Name, type);
@@ -70,27 +78,58 @@ public sealed class PublicIpAddressProvider : IIpAddressProvider
         return null;
     }
 
-    private static string ParseContent(HttpIpSource source, string content)
+    private static string ParseContent(HttpIpSource source, string content, DnsRecordType type)
     {
-        if (source.Format == IpSourceFormat.PlainText)
+        return source.Format switch
         {
-            return content.Trim();
-        }
+            IpSourceFormat.PlainText => content.Trim(),
+            IpSourceFormat.JsonProperty => ReadJsonProperty(source, content),
+            IpSourceFormat.TextExtraction => ExtractAddress(content, type),
+            _ => throw new InvalidDataException("未知的 IP 来源格式。")
+        };
+    }
 
+    private static string ReadJsonProperty(HttpIpSource source, string content)
+    {
         if (string.IsNullOrWhiteSpace(source.JsonPropertyName))
         {
             throw new InvalidDataException("JSON IP 来源缺少属性名。");
         }
 
         using var document = JsonDocument.Parse(content);
-        if (document.RootElement.ValueKind != JsonValueKind.Object ||
-            !document.RootElement.TryGetProperty(source.JsonPropertyName, out var property) ||
-            property.ValueKind != JsonValueKind.String)
+        var element = document.RootElement;
+        foreach (var segment in source.JsonPropertyName.Split('.'))
+        {
+            if (element.ValueKind != JsonValueKind.Object ||
+                !element.TryGetProperty(segment, out var next))
+            {
+                throw new InvalidDataException("JSON 响应缺少预期的 IP 属性。");
+            }
+
+            element = next;
+        }
+
+        if (element.ValueKind != JsonValueKind.String)
         {
             throw new InvalidDataException("JSON 响应缺少预期的 IP 属性。");
         }
 
-        return property.GetString() ?? string.Empty;
+        return element.GetString() ?? string.Empty;
+    }
+
+    private static string ExtractAddress(string content, DnsRecordType type)
+    {
+        var pattern = type == DnsRecordType.A ? IPv4AddressPattern : IPv6AddressPattern;
+        foreach (Match match in pattern.Matches(content))
+        {
+            if (IPAddress.TryParse(match.Value, out var address) &&
+                IpAddressValidator.HasExpectedFamily(address, type))
+            {
+                return match.Value;
+            }
+        }
+
+        return string.Empty;
     }
 
     private static async Task<string> ReadLimitedContentAsync(
