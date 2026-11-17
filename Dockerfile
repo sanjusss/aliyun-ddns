@@ -18,7 +18,7 @@ RUN --mount=type=cache,id=aliyun-ddns-nuget,target=/root/.nuget/packages \
     --no-restore \
     /p:Version=${VERSION}
 
-FROM mcr.microsoft.com/dotnet/runtime:10.0@sha256:80a51954ac70925e5783cb1ed35129a4243dcb1cddef20066b67346e17db284d AS final
+FROM mcr.microsoft.com/dotnet/runtime:11.0@sha256:3fe5f5495141c97986a49d3a4e76061f6225c3f93f94e8a7e522781376193863 AS final
 ARG VERSION=0.3.0
 LABEL org.opencontainers.image.title="aliyun-ddns" \
       org.opencontainers.image.description="阿里云解析动态域名客户端" \
