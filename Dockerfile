@@ -16,7 +16,7 @@ RUN dotnet publish src/AliyunDdns/AliyunDdns.csproj \
     --no-restore \
     /p:Version=${VERSION}
 
-FROM mcr.microsoft.com/dotnet/runtime:10.0@sha256:80a51954ac70925e5783cb1ed35129a4243dcb1cddef20066b67346e17db284d AS final
+FROM mcr.microsoft.com/dotnet/runtime:10.0@sha256:0a0e20d12b84b081fb737fddb92d8d205edce9ac2dc62796d2aab30f03804498 AS final
 ARG VERSION=0.3.0
 LABEL org.opencontainers.image.title="aliyun-ddns" \
       org.opencontainers.image.description="阿里云解析动态域名客户端" \
