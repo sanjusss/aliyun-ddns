@@ -1,6 +1,6 @@
 ARG BUILDPLATFORM
 # SDK 仅在构建机原生平台运行；发布产物为跨架构托管 DLL。
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:0294f285d062afacc8b5f6d7febb0cd4ee879320e5585fa15f2f4ebf1feb9ba7 AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 WORKDIR /src
 
 COPY global.json Directory.Build.props ./
@@ -16,7 +16,7 @@ RUN dotnet publish src/AliyunDdns/AliyunDdns.csproj \
     --no-restore \
     /p:Version=${VERSION}
 
-FROM mcr.microsoft.com/dotnet/runtime:10.0-alpine@sha256:7518aaad9e4328001518006a7e8b3fcf6ce8f8816355574f7264c1fa0a0ce188 AS final
+FROM mcr.microsoft.com/dotnet/runtime:10.0-alpine AS final
 ARG VERSION=0.3.0
 LABEL org.opencontainers.image.title="aliyun-ddns" \
       org.opencontainers.image.description="阿里云解析动态域名客户端" \
