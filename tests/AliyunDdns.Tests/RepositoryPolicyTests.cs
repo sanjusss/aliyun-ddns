@@ -51,15 +51,21 @@ public sealed class RepositoryPolicyTests
     }
 
     [Fact]
-    public void Docker_BaseImagesArePinnedAndAutomaticallyUpdated()
+    public void Docker_BaseImagesFollowTagsAndDependabotSkipsThem()
     {
-        var fromLines = ReadRepositoryFile("Dockerfile").Split('\n')
-            .Where(line => line.StartsWith("FROM ", StringComparison.Ordinal)).ToArray();
-        Assert.Equal(2, fromLines.Length);
-        Assert.All(fromLines, line => Assert.Contains("@sha256:", line, StringComparison.Ordinal));
+        foreach (var dockerfile in new[] { "Dockerfile", "Dockerfile.alpine" })
+        {
+            var fromLines = ReadRepositoryFile(dockerfile).Split('\n')
+                .Where(line => line.StartsWith("FROM ", StringComparison.Ordinal)).ToArray();
+            Assert.Equal(2, fromLines.Length);
+            Assert.All(fromLines, line => Assert.DoesNotContain("@sha256:", line, StringComparison.Ordinal));
+        }
+
         var dependabot = ReadRepositoryFile(".github/dependabot.yml");
         Assert.Contains("package-ecosystem: docker", dependabot, StringComparison.Ordinal);
-        Assert.Contains("interval: weekly", dependabot, StringComparison.Ordinal);
+        Assert.Contains("dependency-name: \"dotnet/*\"", dependabot, StringComparison.Ordinal);
+        // 不带 update-types 才表示忽略 .NET 镜像的全部更新，补丁和 digest 更新也不会开 PR。
+        Assert.DoesNotContain("version-update:", dependabot, StringComparison.Ordinal);
     }
 
     private static string ReadRepositoryFile(string relativePath)

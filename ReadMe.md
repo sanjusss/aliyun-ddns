@@ -316,7 +316,7 @@ CI 在 PR 上只构建和测试。发布 job 仅允许 `master` 或合法 `X.Y.Z
 
 GHCR 使用 `GITHUB_TOKEN` 和 `packages: write`，不需要额外 PAT。首次发布后应在 [GHCR 包页面](https://github.com/users/sanjusss/packages/container/package/aliyun-ddns) 确认包已关联 `sanjusss/aliyun-ddns`；如需匿名拉取，还要在 Package settings 中将可见性设置为 Public。
 
-NuGet 审计覆盖直接和传递依赖，`NU1901`–`NU1904` 作为构建错误，显式漏洞列表检查继续保留。发布镜像包含 amd64、arm64、arm/v7、SBOM 和 provenance。标签发布同时生成包含 `LICENSE` 的 ZIP 和 SHA-256 文件。Docker SDK/runtime 基础镜像固定多架构 manifest digest，Dependabot 每周检查更新。
+NuGet 审计覆盖直接和传递依赖，`NU1901`–`NU1904` 作为构建错误，显式漏洞列表检查继续保留。发布镜像包含 amd64、arm64、arm/v7、SBOM 和 provenance。标签发布同时生成包含 `LICENSE` 的 ZIP 和 SHA-256 文件。Docker SDK/runtime 基础镜像跟随 `10.0` 和 `10.0-alpine` 标签，需要时手动升级，Dependabot 不提示这两类镜像的更新。
 
 ## 许可证
 
