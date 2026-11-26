@@ -6,6 +6,5 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
     ignore:
-      # 只屏蔽 .NET 11 这类大版本升级；10.0 范围内的补丁与镜像摘要更新照常提示
+      # .NET 基础镜像按 10.0 标签跟随，需要时手动升级，不让 dependabot 提示
       - dependency-name: "dotnet/*"
-        update-types: ["version-update:semver-major"]
